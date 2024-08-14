@@ -2,6 +2,13 @@
 Functional Flow
 ==============================
 
+Refer to the architecture diagram for a visual representation of the data flow.
+
+.. figure:: _static/only_architecture.png
+   :alt: Functional Flow Diagram
+
+   Functional Flow Diagram
+
 This section outlines the functional flow of the system, detailing how different components interact and the overall user journey.
 
 **User Journey:**
@@ -36,10 +43,3 @@ This section outlines the functional flow of the system, detailing how different
 - **Backend:** Microservices process requests, interact with databases, and perform business logic.
 - **Database:** CRUD operations are managed, with data consistency ensured.
 - **Event-Driven Architecture:** Kafka manages asynchronous tasks and event-driven workflows.
-
-Refer to the architecture diagram for a visual representation of the data flow.
-
-.. figure:: docs/source/_static/only_architecture.png
-   :alt: Functional Flow Diagram
-
-   Functional Flow Diagram
