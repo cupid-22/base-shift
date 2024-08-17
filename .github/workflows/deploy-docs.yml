@@ -86,5 +86,5 @@ jobs:
           if [ "${{ needs.build.result }}" == "success" ]; then
             echo "🚀 Build and Deploy Sphinx Docs Success! 🎉"
           else
-              echo "❌ Build and Deploy Sphinx Docs Failed! 😞"
-          fi"
+            echo "❌ Build and Deploy Sphinx Docs Failed! 😞"
+          fi
