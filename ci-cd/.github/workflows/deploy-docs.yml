@@ -1,9 +1,12 @@
-name: Deploy Sphinx Docs to GitHub Pages
+name: Build and Deploy Sphinx Docs
 
 on:
   push:
     branches:
-      - main  # Trigger the action on pushes to the main branch
+      - main  # Specify the branch to monitor
+    paths:
+      - 'docs/**'  # Trigger on any changes in the docs/ directory
+      - 'application/**/docs/**'  # Trigger on any changes in any docs/ subdirectory within application/
 
 jobs:
   build:
@@ -23,24 +26,27 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: [core] Build the documentation
+      - name: Build the Sphinx documentation
+        run: make html
+        working-directory: docs  # Change this if your Sphinx source files are in a different directory
+
+      - name: Deploy to docs/ directory
         run: |
-          make html
-        working-directory: docs
+          rm -rf ./docs/  # Remove the old docs directory
+          mv ./docs/_build/html ./docs/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Deploy updated Sphinx documentation"
+          git push origin main
+        if: success()
 
-      - name: [core] Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/_build/html
-
-      - name: [application] Build the documentation
-        run: |
-          make html
-        working-directory: applications/*/*docs
-
-      - name: [application] Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/_build/html
+# Explanation:
+#Trigger Conditions:
+#
+#paths: The paths filter in the on block specifies that the workflow should only run when files in docs/ or application/**/docs/ are modified.
+#'docs/**': Triggers the workflow for any changes within the docs/ directory, including subdirectories.
+#'application/**/docs/**': Triggers the workflow for any changes in docs/ subdirectories within any application/ subdirectory. The double asterisk (**) allows for matching any directory depth within application/.
+#Build and Deploy Steps:
+#
+#The steps in this workflow remain the same as the general build and deploy steps discussed earlier, but now they will only execute when the specified directories are modified.
