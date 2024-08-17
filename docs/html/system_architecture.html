@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>System Architecture &#8212; Base Shift 0.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=7026087e"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Functional Flow" href="functional_flow.html" />
+    <link rel="prev" title="Project Documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="system-architecture">
+<h1>System Architecture<a class="headerlink" href="#system-architecture" title="Link to this heading">¶</a></h1>
+<p>This section provides an in-depth look at the overall system architecture, detailing the components, their interactions, and the design principles that guide the system.</p>
+<p><strong>Overview:</strong></p>
+<p>The system is built on a microservices architecture, enabling flexibility, scalability, and independent development of components. Each microservice is designed to handle a specific business function, and the services communicate through well-defined APIs.</p>
+<p><strong>Key Components:</strong></p>
+<ol class="arabic">
+<li><p><strong>API Gateway:</strong>
+- Acts as a single entry point for all client requests.
+- Routes requests to the appropriate backend microservices.
+- Handles cross-cutting concerns such as authentication, logging, and rate limiting.</p></li>
+<li><p><strong>Frontend:</strong>
+- <strong>React.js</strong> for building user interfaces.
+- The frontend is designed to be white-labeled, allowing on-the-fly customization.
+- It communicates with the backend via RESTful APIs and WebSockets for real-time updates.</p></li>
+<li><p><strong>Backend Microservices:</strong>
+- <strong>Authentication Service:</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Manages user authentication and authorization using OAuth2.0/JWT.</p></li>
+<li><p>Interacts with the database to manage user credentials and tokens.</p></li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><p><strong>Order Management Service:</strong>
+- Handles the creation, processing, and tracking of orders.
+- Integrates with payment gateways and inventory management systems.</p></li>
+<li><p><strong>Manufacturing Line Service:</strong>
+- Manages the workflow of manufacturing processes.
+- Provides real-time monitoring and control of production lines.</p></li>
+<li><p><strong>Inventory Management Service:</strong>
+- Tracks inventory levels, updates stock, and triggers reordering.
+- Sends notifications when stock levels fall below a certain threshold.</p></li>
+<li><p><strong>Analytics Service:</strong>
+- Collects and processes data from various services.
+- Provides insights and reports through a dashboard.</p></li>
+</ul>
+</li>
+<li><p><strong>Databases:</strong>
+- <strong>PostgreSQL:</strong> Relational database used for storing structured data such as user information, orders, and inventory.
+- <strong>MongoDB:</strong> NoSQL database used for storing unstructured data such as logs, product catalog, and other dynamic content.</p></li>
+<li><p><strong>Event-Driven Architecture:</strong>
+- <strong>Kafka:</strong> Manages asynchronous tasks and event-driven workflows between microservices.
+- Events are used to decouple services and ensure scalability.</p></li>
+<li><p><strong>Containerization and Orchestration:</strong>
+- <strong>Docker:</strong> Each microservice is containerized, ensuring consistency across development and production environments.
+- <strong>Kubernetes:</strong> Orchestrates container deployment, scaling, and management across multiple environments.</p></li>
+<li><p><strong>External Integrations:</strong>
+- <strong>Payment Gateways:</strong> Integration with third-party payment providers for processing transactions.
+- <strong>CRM Systems:</strong> Syncs customer data and interactions with external CRM platforms.
+- <strong>Shipping Providers:</strong> Automates the shipping process by integrating with external logistics providers.</p></li>
+</ol>
+<p><strong>Communication Between Services:</strong></p>
+<ul class="simple">
+<li><p><strong>RESTful APIs:</strong> Synchronous communication between frontend and backend services.</p></li>
+<li><p><strong>gRPC/Protobuf:</strong> Efficient communication between backend services where low latency is required.</p></li>
+<li><p><strong>WebSockets:</strong> Enables real-time communication for features like live order tracking and manufacturing line monitoring.</p></li>
+<li><p><strong>Message Queues:</strong> Kafka is used for event-driven communication, ensuring reliable processing of asynchronous tasks.</p></li>
+</ul>
+<p><strong>Security Architecture:</strong></p>
+<ul class="simple">
+<li><p><strong>Authentication:</strong> OAuth2.0 and JWT are used for secure user authentication and authorization.</p></li>
+<li><p><strong>Data Encryption:</strong> All sensitive data is encrypted in transit (using TLS/SSL) and at rest.</p></li>
+<li><p><strong>Role-Based Access Control (RBAC):</strong> Ensures that users have appropriate permissions based on their roles.</p></li>
+</ul>
+<p><strong>High Availability and Scalability:</strong></p>
+<ul class="simple">
+<li><p><strong>Auto-Scaling:</strong> Kubernetes handles auto-scaling of microservices based on load.</p></li>
+<li><p><strong>Load Balancing:</strong> NGINX or AWS Elastic Load Balancing (ELB) is used to distribute traffic evenly across multiple instances.</p></li>
+<li><p><strong>Failover Mechanisms:</strong> Redundancy is built into the system to ensure high availability in case of failures.</p></li>
+</ul>
+<p><strong>Deployment and CI/CD:</strong></p>
+<ul class="simple">
+<li><p><strong>CI/CD Pipeline:</strong> Automated deployment using GitHub Actions or Jenkins, ensuring that code changes are tested and deployed seamlessly.</p></li>
+<li><p><strong>Infrastructure as Code (IaC):</strong> Terraform is used to manage and provision infrastructure resources.</p></li>
+</ul>
+<p><strong>Monitoring and Logging:</strong></p>
+<ul class="simple">
+<li><p><strong>Prometheus:</strong> Used for monitoring system performance and health.</p></li>
+<li><p><strong>Grafana:</strong> Provides dashboards for visualizing performance metrics.</p></li>
+<li><p><strong>ELK Stack (Elasticsearch, Logstash, Kibana):</strong> Centralized logging and log analysis.</p></li>
+</ul>
+<p><strong>Extensibility and Modularity:</strong></p>
+<ul class="simple">
+<li><p>The system is designed to be modular, allowing for easy addition of new services or modification of existing ones without impacting the overall architecture.</p></li>
+<li><p>APIs are versioned to maintain backward compatibility.</p></li>
+</ul>
+<p><strong>References:</strong></p>
+<ul class="simple">
+<li><p>[React Documentation](<a class="reference external" href="https://reactjs.org/docs/getting-started.html">https://reactjs.org/docs/getting-started.html</a>)</p></li>
+<li><p>[PostgreSQL Documentation](<a class="reference external" href="https://www.postgresql.org/docs/">https://www.postgresql.org/docs/</a>)</p></li>
+<li><p>[Kubernetes Documentation](<a class="reference external" href="https://kubernetes.io/docs/">https://kubernetes.io/docs/</a>)</p></li>
+<li><p>[Kafka Documentation](<a class="reference external" href="https://kafka.apache.org/documentation/">https://kafka.apache.org/documentation/</a>)</p></li>
+</ul>
+<p><strong>Diagrams:</strong></p>
+<figure class="align-default" id="id1">
+<img alt="System Architecture Diagram" src="path/to/architecture_diagram.png" />
+<figcaption>
+<p><span class="caption-text">System Architecture Diagram</span><a class="headerlink" href="#id1" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Base Shift</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">System Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functional_flow.html">Functional Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup_tools.html">Setup Tools and Environment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contribution_guide.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="versioning.html">Versioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="additional_information.html">Additional Information</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Project Documentation</a></li>
+      <li>Next: <a href="functional_flow.html" title="next chapter">Functional Flow</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Gaurav Mishra.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/system_architecture.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
