@@ -39,12 +39,27 @@ jobs:
 
       - name: Deploy to docs/ directory 📂
         run: |
+          # Check if the build output directory exists
           if [ -d "./docs/build/html" ]; then
             echo "Moving all the build docs to deployment"
-            mv ./docs/build/html ./docs/
+          
+            # Remove contents of the destination directory if it exists
+            if [ -d "./docs/html" ]; then
+                echo "Clearing existing contents in ./docs/html"
+                rm -rf ./docs/html/*
+              else
+                  # Create destination directory if it does not exist
+                  mkdir -p ./docs/html
+              fi
+          
+              # Move the build directory to the destination
+              mv ./docs/build/html/* ./docs/html/
+              # Optionally remove the now-empty build directory
+              rmdir ./docs/build/html
           else
-            echo "Build output not found, skipping move."
-            exit 1
+              echo "Build output not found, skipping move."
+              # You can choose whether to exit with an error code or not
+              # exit 1
           fi
 
           git config user.name "github-actions[bot]"
