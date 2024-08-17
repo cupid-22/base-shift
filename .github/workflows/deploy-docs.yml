@@ -32,19 +32,21 @@ jobs:
 
       - name: Build the Sphinx documentation
         run: make html
-        working-directory: docs  # Change this if your Sphinx source files are in a different directory
+        working-directory: docs
+
+      - name: List build directory (for debugging)
+        run: ls -la docs/_build/html
 
       - name: Deploy to docs/ directory
         run: |
-          rm -rf ./docs/  # Remove the old docs directory
-          mv ./docs/_build/html ./docs/
+          rm -rf ./deployed_docs/  # Be careful with this to avoid deleting your source files
+          mv ./docs/_build/html ./deployed_docs/
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .
           git commit -m "Deploy updated Sphinx documentation"
           git push origin main
         if: success()
-
 # Explanation:
 #Trigger Conditions:
 #
