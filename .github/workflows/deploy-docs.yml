@@ -3,10 +3,14 @@ name: Build and Deploy Sphinx Docs
 on:
   push:
     branches:
-      - main  # Specify the branch to monitor
+      - main
     paths:
-      - 'docs/**'  # Trigger on any changes in the docs/ directory
-      - 'application/**/docs/**'  # Trigger on any changes in any docs/ subdirectory within application/
+      - 'docs/**'
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
 
 jobs:
   build:
