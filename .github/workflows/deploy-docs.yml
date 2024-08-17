@@ -34,14 +34,17 @@ jobs:
         run: make html
         working-directory: docs
 
+      - name: List build directory (for debugging) 🧐
+        run: ls -la docs/build/html
+
       - name: Deploy to docs/ directory 📂
         run: |
           if [ -d "./docs/" ]; then
             rm -rf ./docs/
           fi
 
-          if [ -d "./docs/_build/html" ]; then
-            mv ./docs/_build/html ./docs/
+          if [ -d "./docs/build/html" ]; then
+            mv ./docs/build/html ./docs/
           else
             echo "Build output not found, skipping move."
             exit 1
