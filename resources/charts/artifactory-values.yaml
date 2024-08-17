@@ -1,0 +1,31 @@
+replicaCount: 1
+
+image:
+  repository: jfrog/artifactory-oss
+  tag: 7.15.6
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 8081
+
+persistence:
+  enabled: true
+  storageClass: "fast"
+  accessModes:
+    - ReadWriteOnce
+  size: 100Gi
+
+postgresql:
+  enabled: true
+  postgresqlUsername: artifactory
+  postgresqlPassword: artifactorypassword
+  postgresqlDatabase: artifactory
+
+resources:
+  limits:
+    cpu: "1"
+    memory: "2Gi"
+  requests:
+    cpu: "500m"
+    memory: "1Gi"

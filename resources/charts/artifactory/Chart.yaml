@@ -1,0 +1,6 @@
+apiVersion: v2
+name: artifactory
+description: A Helm chart for JFrog Artifactory
+type: application
+version: 1.0.0
+appVersion: 7.15.6 # Update with the version of Artifactory you want to use

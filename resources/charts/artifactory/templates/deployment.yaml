@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "artifactory.fullname" . }}
+  labels:
+    {{- include "artifactory.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "artifactory.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "artifactory.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: artifactory
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8081
+          volumeMounts:
+            - name: artifactory-data
+              mountPath: /var/opt/jfrog/artifactory
+      volumes:
+        - name: artifactory-data
+          persistentVolumeClaim:
+            claimName: {{ include "artifactory.fullname" . }}-pvc
