@@ -34,9 +34,6 @@ jobs:
         run: make html
         working-directory: docs
 
-      - name: List build directory (for debugging) 🧐
-        run: ls -la docs/_build/html
-
       - name: Deploy to docs/ directory 📂
         run: |
           if [ -d "./docs/" ]; then
@@ -59,7 +56,7 @@ jobs:
       - name: Provide deployment link 🔗
         run: |
           echo "Documentation successfully deployed! 📖"
-          echo "Check it out at: https://<YOUR-GITHUB-USERNAME>.github.io/<YOUR-REPO-NAME>/docs/"
+          echo "Check it out at: https://cupid-22.github.io/base-shift/docs/"
 
   notify:
     runs-on: ubuntu-latest
