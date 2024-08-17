@@ -19,7 +19,7 @@ The Only Menu system is designed to be a lightweight, scalable, and user-friendl
 
 **Core Components:**
 
-- **Frontend (PWA)**: Built with React.js/Vue.js for a responsive and intuitive user experience.
+- **Frontend (PWA)**: Built with React.js for a responsive and intuitive user experience.
 - **Backend API**: FastAPI/Flask for Python backends, or Express.js for Node.js backends.
 - **AI Processing**: Utilizes TensorFlow/Tesseract for OCR and NLP.
 - **Data Storage**: PostgreSQL and Elasticsearch for efficient data management.
