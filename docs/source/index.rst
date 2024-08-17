@@ -72,7 +72,7 @@ A record of changes made to the project over time, including new features, bug f
 Answers to common questions about the system, its usage, and troubleshooting tips.
 
 **Glossary**
-Definitions of terms and concepts used in the documentation and the system.
+Definitions of terms and concepts used in the documentation and the system(s).
 
 -------------------------------------------------------------
 Getting Started
