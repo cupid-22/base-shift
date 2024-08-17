@@ -39,11 +39,8 @@ jobs:
 
       - name: Deploy to docs/ directory 📂
         run: |
-          if [ -d "./docs/" ]; then
-            rm -rf ./docs/
-          fi
-
           if [ -d "./docs/build/html" ]; then
+            echo "Moving all the build docs to deployment"
             mv ./docs/build/html ./docs/
           else
             echo "Build output not found, skipping move."
