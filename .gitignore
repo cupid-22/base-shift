@@ -1,0 +1,3 @@
+/applications/**/docs/build/
+/docs/build/
+/.venv/
