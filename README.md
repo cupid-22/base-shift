@@ -13,7 +13,7 @@ Welcome to the documentation for **Base Shift**, a super flexible platform desig
 - [About Base Shift](#about-base-shift)
 - [System Architecture](#system-architecture)
 - [Functional Flow](#functional-flow)
-- [Industry Needs](#industry-needs)
+- [Hosted Applications](#applications)
 - [Setup Tools](#setup-tools)
 - [Contribution Guide](#contribution-guide)
 - [Versioning](#versioning)
@@ -40,13 +40,16 @@ This documentation is designed to guide developers, stakeholders, and contributo
 
 An in-depth look at the system's architecture, including the design principles, components, and how they interact.
 
+Visit the developer's doc for latest update: https://cupid-22.github.io/base-shift/index.html
+
 ## Functional Flow
 
 Detailed descriptions of the functional flow of the system, including user interactions and system processes.
 
-## Industry Needs
+## Applications
 
-An exploration of the industry requirements that the system addresses and how it fits into the broader market landscape.
+Application using the Base Shift as it's underlying technology are:
+- Only Menu
 
 ## Setup Tools
 
