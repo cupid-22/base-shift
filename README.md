@@ -2,9 +2,9 @@
 
 Welcome to the documentation for **Base Shift**, a super flexible platform designed to build various tools and applications on top. Below is an index of the sections detailing different aspects of this project.
 
-[![Build Status](https://img.shields.io/github/workflow/status/username/repository/CI)](https://github.com/username/repository/actions) 
-[![Coverage](https://img.shields.io/codecov/c/github/username/repository)](https://codecov.io/github/username/repository) 
-[![Version](https://img.shields.io/github/v/release/username/repository)](https://github.com/username/repository/releases)
+[![Build Status](https://img.shields.io/github/workflow/status/username/repository/CI)](https://github.com/cupid-22/base-shift/actions) 
+[![Coverage](https://img.shields.io/codecov/c/github/username/repository)](https://codecov.io/github/cupid-22/base-shift/) 
+[![Version](https://img.shields.io/github/v/release/username/repository)](https://github.com/cupid-22/base-shift/releases)
 [![Build and Deploy Sphinx Docs](https://github.com/cupid-22/base-shift/actions/workflows/deploy-docs.yml/badge.svg)](https://github.com/cupid-22/base-shift/actions/workflows/deploy-docs.yml)
 
 ## Contents
