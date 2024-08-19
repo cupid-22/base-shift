@@ -37,45 +37,12 @@ jobs:
       - name: List build directory (for debugging) 🧐
         run: ls -la docs/build/html
 
-      - name: Deploy to docs/ directory 📂
-        run: |
-          # Check if the build output directory exists
-          if [ -d "./docs/build/html" ]; then
-              echo "Moving all the build docs to deployment"
-          
-              # Ensure the destination directory exists or create it
-              if [ ! -d "./docs/html" ]; then
-                  mkdir -p ./docs/html
-              fi
-          
-              # Remove all contents from the destination directory if it exists
-              if [ -d "./docs/html" ]; then
-                  echo "Clearing existing contents in ./docs/html"
-                  rm -rf ./docs/html/*
-              fi
-          
-              # Move the build directory contents to the destination
-              mv ./docs/build/html/* ./docs/html/
-          
-              # Optionally, remove the now-empty build directory
-              rm -rf ./docs/build/html
-          else
-              echo "Build output not found, skipping move."
-              # You can choose whether to exit with an error code or not
-              # exit 1
-          fi
-          
-          
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "🚀 Deploy updated Sphinx documentation 📚"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
-
-      - name: Provide deployment link 🔗
-        run: |
-          echo "Documentation successfully deployed! 📖"
-          echo "Check it out at: https://cupid-22.github.io/base-shift/docs/"
+      - name: Deploy to GitHub Pages 📂
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/build/html
+          publish_branch: main
 
   notify:
     runs-on: ubuntu-latest
@@ -87,4 +54,3 @@ jobs:
             echo "🚀 Build and Deploy Sphinx Docs Success! 🎉"
           else
             echo "❌ Build and Deploy Sphinx Docs Failed! 😞"
-          fi
