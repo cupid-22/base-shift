@@ -45,7 +45,7 @@ jobs:
           for dir in $(find applications -type d -name 'docs' -printf '%h\n'); do
             echo "Processing $dir"
             # Build the documentation
-            (cd "$dir" && make html)
+            (cd "$dir"/docs && make html)
             # Upload the documentation as an artifact
             mkdir -p $GITHUB_WORKSPACE/artifacts/$(basename $dir)
             cp -r "$dir/build/html" $GITHUB_WORKSPACE/artifacts/$(basename $dir)
