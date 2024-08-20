@@ -25,12 +25,9 @@ Applications Documentation
 
 Below are links to the documentation for specific applications built on **Base Shift**:
 
-- `Only Menus Documentation <https://cupid-22.github.io/base-shift/only-menu/docs/index.html>`_
-- `[Upcoming] Only POS Documentation <https://cupid-22.github.io/base-shift/only-pos/docs/index.html>`_
+- `Only Menus Documentation <https://cupid-22.github.io/base-shift/only-menu/index.html>`_
+- `[Upcoming] Only POS Documentation <https://cupid-22.github.io/base-shift/only-pos/index.html>`_
 
--------------------------------------------------------------
-About This Documentation
--------------------------------------------------------------
 -------------------------------------------------------------
 About This Documentation
 -------------------------------------------------------------
