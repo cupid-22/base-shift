@@ -4,6 +4,11 @@ System Architecture
 
 This section provides an in-depth look at the overall system architecture, detailing the components, their interactions, and the design principles that guide the system.
 
+.. figure:: _static/basic_workflow.png
+   :alt: Basic Flow Diagram
+
+   Basic Flow Diagram
+
 **Overview:**
 
 The system is built on a microservices architecture, enabling flexibility, scalability, and independent development of components. Each microservice is designed to handle a specific business function, and the services communicate through well-defined APIs.
