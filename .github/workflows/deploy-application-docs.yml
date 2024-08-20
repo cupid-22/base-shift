@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'applications/**/docs/**'
-      - '.github/workflows/**-docs**'
+      - '.github/workflows/**application-docs**'
   pull_request:
     branches:
       - main
@@ -48,7 +48,7 @@ jobs:
             (cd "$dir"/docs && make html)
             # Upload the documentation as an artifact
             mkdir -p $GITHUB_WORKSPACE/artifacts/$(basename $dir)
-            cp -r "$dir/build/html" $GITHUB_WORKSPACE/artifacts/$(basename $dir)
+            cp -r "$dir/docs/build/html" $GITHUB_WORKSPACE/artifacts/$(basename $dir)
           done
         shell: bash
 
