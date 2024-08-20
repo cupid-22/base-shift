@@ -103,7 +103,7 @@ The system is built on a microservices architecture, enabling flexibility, scala
 
 **Diagrams:**
 
-.. figure:: _static/only_architecture.png.png
+.. figure:: _static/only_architecture.png
    :alt: System Architecture Diagram
 
    System Architecture Diagram
