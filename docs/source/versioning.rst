@@ -63,6 +63,6 @@ This section details the versioning strategy for the project, ensuring consisten
 
 **References:**
 
-- [Semantic Versioning 2.0.0](https://semver.org/)
-- [Git Tagging Documentation](https://git-scm.com/book/en/v2/Git-Basics-Tagging)
-- [Alembic Documentation](https://alembic.sqlalchemy.org/en/latest/)
+- `Semantic Versioning 2.0.0 <https://semver.org/>`_
+- `Git Tagging Documentation <https://git-scm.com/book/en/v2/Git-Basics-Tagging>`_
+- `Alembic Documentation <https://alembic.sqlalchemy.org/en/latest/>`_

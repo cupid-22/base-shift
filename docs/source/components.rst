@@ -34,8 +34,8 @@ This document outlines the components, languages, frameworks, and key considerat
 
 **Diagram Links and References:**
 
-- [React Architecture Best Practices](https://reactjs.org/docs/architecture-best-practices.html)
-- [Storybook Documentation](https://storybook.js.org/docs/react/get-started/introduction)
+- `React Architecture Best Practices <https://reactjs.org/docs/architecture-best-practices.html>`_
+- `Storybook Documentation <https://storybook.js.org/docs/react/get-started/introduction>`_
 
 ------------------------------------------------------------
 2. Backend Microservices
@@ -67,8 +67,8 @@ This document outlines the components, languages, frameworks, and key considerat
 
 **Diagram Links and References:**
 
-- [Node.js Microservices Architecture](https://microservices.io/patterns/microservices.html)
-- [Kafka Event Streaming](https://kafka.apache.org/documentation/streams)
+- `Node.js Microservices Architecture <https://microservices.io/patterns/microservices.html>`_
+- `Kafka Event Streaming <https://kafka.apache.org/documentation/streams>`_
 
 ------------------------------------------------------------
 3. Database and Data Management
@@ -97,8 +97,8 @@ This document outlines the components, languages, frameworks, and key considerat
 
 **Diagram Links and References:**
 
-- [SQL vs NoSQL Databases](https://www.mongodb.com/scale/sql-vs-nosql)
-- [Caching Strategies with Redis](https://redis.io/documentation)
+- `SQL vs NoSQL Databases <https://www.mongodb.com/scale/sql-vs-nosql>`_
+- `Caching Strategies with Redis <https://redis.io/documentation>`_
 
 ------------------------------------------------------------
 4. Authentication & Security
@@ -125,8 +125,8 @@ This document outlines the components, languages, frameworks, and key considerat
 
 **Diagram Links and References:**
 
-- [OAuth 2.0 Framework](https://oauth.net/2/)
-- [JWT Best Practices](https://jwt.io/introduction/)
+- `OAuth 2.0 Framework <https://oauth.net/2/>`_
+- `JWT Best Practices <https://jwt.io/introduction/>`_
 
 ------------------------------------------------------------
 5. Event-Driven Architecture & Message Queue
@@ -152,8 +152,8 @@ This document outlines the components, languages, frameworks, and key considerat
 
 **Diagram Links and References:**
 
-- [Event-Driven Architecture](https://martinfowler.com/articles/201701-event-driven.html)
-- [Apache Kafka Documentation](https://kafka.apache.org/documentation/)
+- `Event-Driven Architecture <https://martinfowler.com/articles/201701-event-driven.html>`_
+- `Apache Kafka Documentation <https://kafka.apache.org/documentation/>`_
 
 ------------------------------------------------------------
 6. CI/CD Pipeline
@@ -181,8 +181,8 @@ This document outlines the components, languages, frameworks, and key considerat
 
 **Diagram Links and References:**
 
-- [CI/CD Best Practices](https://docs.gitlab.com/ee/ci/best_practices/)
-- [Docker and Kubernetes Integration](https://kubernetes.io/docs/concepts/containers/)
+- `CI/CD Best Practices <https://docs.gitlab.com/ee/ci/best_practices/>`_
+- `Docker and Kubernetes Integration <https://kubernetes.io/docs/concepts/containers/>`_
 
 ------------------------------------------------------------
 7. Analytics & Reporting
@@ -208,8 +208,8 @@ This document outlines the components, languages, frameworks, and key considerat
 
 **Diagram Links and References:**
 
-- [Apache Spark Overview](https://spark.apache.org/docs/latest/)
-- [Tableau Documentation](https://help.tableau.com/current/guides/get-started-tutorial/en-us/get-started-tutorial-home.htm)
+- `Apache Spark Overview <https://spark.apache.org/docs/latest/>`_
+- `Tableau Documentation <https://help.tableau.com/current/guides/get-started-tutorial/en-us/get-started-tutorial-home.html>`_
 
 ------------------------------------------------------------
 8. Service Mesh & API Gateway
@@ -232,8 +232,8 @@ This document outlines the components, languages, frameworks, and key considerat
 
 **Diagram Links and References:**
 
-- [Service Mesh Overview](https://istio.io/latest/docs/concepts/what-is-istio/)
-- [API Gateway Patterns](https://microservices.io/patterns/apigateway.html)
+- `Service Mesh Overview <https://istio.io/latest/docs/concepts/what-is-istio/>`_
+- `API Gateway Patterns <https://microservices.io/patterns/apigateway.html>`_
 
 ------------------------------------------------------------
 9. Integration with the "Only" Product
@@ -257,7 +257,7 @@ The "Only" product serves as the core engine that drives the overall system arch
 
 **Diagram Links and References:**
 
-- [White Labeling Best Practices](https://www.whitelabel.com/white-label-best-practices/)
+- `White Labeling Best Practices <https://www.whitelabel.com/white-label-best-practices/>`_
 
 ------------------------------------------------------------
 Conclusion

@@ -104,6 +104,6 @@ This section provides a detailed guide on setting up the development environment
 
 **References:**
 
-- [React Documentation](https://reactjs.org/docs/getting-started.html)
-- [Python Documentation](https://docs.python.org/3/)
-- [Docker Documentation](https://docs.docker.com/)
+- `React Documentation <https://reactjs.org/docs/getting-started.html>`_
+- `Python Documentation <https://docs.python.org/3/>`_
+- `Docker Documentation <https://docs.docker.com/>`_

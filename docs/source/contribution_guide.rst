@@ -86,6 +86,6 @@ This section outlines the guidelines for contributing to the project, including 
 
 **References:**
 
-- [PEP 8 - Python Style Guide](https://www.python.org/dev/peps/pep-0008/)
-- [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript)
-- [GitHub Flow](https://guides.github.com/introduction/flow/)
+- `PEP 8 - Python Style Guide <https://www.python.org/dev/peps/pep-0008/>`_
+- `Airbnb JavaScript Style Guide <https://github.com/airbnb/javascript>`_
+- `GitHub Flow <https://guides.github.com/introduction/flow/>`_

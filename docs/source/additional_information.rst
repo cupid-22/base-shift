@@ -64,8 +64,8 @@ This section provides additional information that may be useful for developers, 
 
 **References and Resources:**
 
-- [OAuth2.0 and JWT Documentation](https://oauth.net/2/)
-- [TLS/SSL Best Practices](https://www.ssl.com/guide/tls-vs-ssl/)
-- [Redis Documentation](https://redis.io/documentation)
-- [NGINX Load Balancing](https://www.nginx.com/resources/glossary/load-balancing/)
-- [Swagger Documentation](https://swagger.io/docs/)
+- `OAuth2.0 and JWT Documentation <https://oauth.net/2/>`_
+- `TLS/SSL Best Practices <https://www.ssl.com/guide/tls-vs-ssl/>`_
+- `Redis Documentation <https://redis.io/documentation>`_
+- `NGINX Load Balancing <https://www.nginx.com/resources/glossary/load-balancing/>`_
+- `Swagger Documentation <https://swagger.io/docs/>`_

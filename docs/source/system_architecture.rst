@@ -96,10 +96,10 @@ The system is built on a microservices architecture, enabling flexibility, scala
 
 **References:**
 
-- [React Documentation](https://reactjs.org/docs/getting-started.html)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
-- [Kubernetes Documentation](https://kubernetes.io/docs/)
-- [Kafka Documentation](https://kafka.apache.org/documentation/)
+- `React Documentation <https://reactjs.org/docs/getting-started.html>`_
+- `PostgreSQL Documentation <https://www.postgresql.org/docs/>`_
+- `Kubernetes Documentation <https://kubernetes.io/docs/>`_
+- `Kafka Documentation <https://kafka.apache.org/documentation/>`_
 
 **Diagrams:**
 
