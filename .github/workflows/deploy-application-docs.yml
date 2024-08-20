@@ -43,14 +43,25 @@ jobs:
         run: |
           # Find all directories with a 'docs' folder and iterate over them
           for dir in $(find applications -type d -name 'docs' -printf '%h\n'); do
-            echo "Processing $dir"
+            app_name=$(basename $dir)
+            echo "Processing $app_name in $dir"
             # Build the documentation
-            (cd "$dir"/docs && make html)
-            # Upload the documentation as an artifact
-            mkdir -p $GITHUB_WORKSPACE/artifacts/$(basename $dir)
-            cp -r "$dir/docs/build/html" $GITHUB_WORKSPACE/artifacts/$(basename $dir)
+            (cd "$dir/docs" && make html)
+            # Verify that the index.html file exists
+            if [ -f "$dir/docs/build/html/index.html" ]; then
+              echo "index.html found in $dir"
+            else
+              echo "Error: index.html not found in $dir"
+              exit 1
+            fi
+            # Upload the documentation to a subfolder corresponding to the application name
+            mkdir -p $GITHUB_WORKSPACE/artifacts/$app_name
+            cp -r "$dir/docs/build/html/"* $GITHUB_WORKSPACE/artifacts/$app_name/
           done
         shell: bash
+
+      - name: List artifacts (for debugging) 🧐
+        run: ls -R artifacts/
 
       - name: Upload all artifacts
         uses: actions/upload-pages-artifact@v3
