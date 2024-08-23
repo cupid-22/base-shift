@@ -1,0 +1,84 @@
+services:
+  grafana:
+    image: grafana/grafana
+    container_name: grafana_main
+    restart: unless-stopped
+    ports:
+      - '3002:3000'
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
+  zookeeper:
+    container_name: zookeeper_main
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    container_name: kafka_main
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+
+  postgres:
+    container_name: postgres_main
+    image: postgres:14
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: base_shift
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mongodb:
+    container_name: mongo_main
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  react:
+    container_name: react_main
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    working_dir: /app
+    ports:
+      - "3000:3000"
+
+  sonarqube:
+    container_name: qube_main
+    image: sonarqube:latest
+    environment:
+      SONARQUBE_JDBC_URL: jdbc:postgresql://postgres:5432/sonarqube
+      SONARQUBE_JDBC_USERNAME: admin
+      SONARQUBE_JDBC_PASSWORD: admin
+    ports:
+      - "9000:9000"
+    depends_on:
+      - postgres
+
+  redis:
+    container_name: redis_main
+    image: 'redislabs/redismod'
+    ports:
+      - '6379:6379'
+
+volumes:
+  postgres_data:
+  mongo_data:
+  grafana-storage: {}

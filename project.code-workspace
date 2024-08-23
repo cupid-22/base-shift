@@ -1,0 +1,47 @@
+{
+    "folders": [
+        {
+            "path": "docs"
+        },
+        {
+            "path": "dotfolders"
+        },
+        {
+            "path": "gitignore"
+        },
+        {
+            "path": "docs/docs",
+            "name": "Docs"
+        },
+        {
+            "path": ".devcontainer",
+            "name": "Devcontainer"
+        },
+        {
+            "path": ".venv",
+            "name": "Venv"
+        },
+        {
+            "path": ".github",
+            "name": "Github"
+        },
+        {
+            "path": ".git",
+            "name": "Git"
+        },
+        {
+            "path": ".vscode",
+            "name": "Vscode"
+        },
+        {
+            "path": ".idea",
+            "name": "Idea"
+        }
+    ],
+    "settings": {
+        "python.pythonPath": "/usr/local/bin/python",
+        "python.formatting.provider": "black",
+        "editor.formatOnSave": true,
+        "files.autoSave": "onWindowChange"
+    }
+}
