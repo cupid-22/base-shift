@@ -1,0 +1,51 @@
+{
+    "python.pythonPath": "/usr/local/bin/python", // Adjust if necessary
+    "python.formatting.provider": "black",
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.sortImports.path": "black",
+    "python.testing.unittestEnabled": true,
+    "python.testing.nosetestsEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "eslint.enable": true,
+    "eslint.run": "onType",
+    "prettier.requireConfig": true,
+    "prettier.enable": true,
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit"
+    },
+    "yaml.schemas": {
+        "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.yml",
+        "https://json.schemastore.org/kubernetes.json": ".kubernetes/**/*.yaml"
+    },
+    "docker.enabled": true,
+    "docker.suppressTelemetryNotification": true,
+    "mongodb.connections": [
+        {
+            "connectionString": "mongodb://localhost:27017",
+            "database": "myDatabase"
+        }
+    ],
+    "postgresql.connections": [
+        {
+            "name": "Local PostgreSQL",
+            "host": "localhost",
+            "port": 5432,
+            "user": "postgres",
+            "password": "your_password",
+            "database": "myDatabase"
+        }
+    ],
+    "kubernetes": {
+        "config": "~/.kube/config",
+        "contexts": [
+            {
+                "name": "minikube",
+                "context": "minikube"
+            }
+        ]
+    },
+    "files.autoSave": "onWindowChange",
+    "terminal.integrated.defaultProfile.linux": "bash"
+}

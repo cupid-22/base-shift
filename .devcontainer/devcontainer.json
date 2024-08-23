@@ -1,0 +1,57 @@
+{
+  "name": "Base Shift Development Container",
+  "dockerComposeFile": [
+    "../infra/local/docker-compose.yml",
+    "docker-compose.internal.yml",
+  ],
+  "workspaceFolder": "/workspace",
+  "service": "default",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylint",
+        "ms-python.black-formatter",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "redhat.vscode-yaml",
+        "vscode-icons-team.vscode-icons",
+        "vscode.restructuredtext",
+        "ms-azuretools.vscode-docker",
+        "eamodio.gitlens",
+        "ms-vscode.vscode-node-azure-pack"
+      ],
+      "settings": {
+        "python.pythonPath": "/usr/local/bin/python",
+        "python.formatting.provider": "black",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll": "explicit"
+        },
+        "eslint.enable": true,
+        "eslint.run": "onType",
+        "prettier.requireConfig": true,
+        "prettier.enable": true,
+        "yaml.schemas": {
+          "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.yml"
+        },
+        "docker.enabled": true,
+        "files.autoSave": "onWindowChange"
+      }
+    }
+  },
+"postCreateCommand": "chmod -R 777 /mnt/workspace-config && python3 /usr/local/bin/generate_workspace.py",
+  "remoteUser": "baseshiftcore",
+  "containerUser": "root",
+  "shutdownAction": "stopCompose",
+  "runServices": [
+    "grafana",
+    "sonarqube"
+  ],
+  "overrideCommand": false,
+  "mounts": [
+    "source=workspace-config,target=/mnt/workspace-config,type=volume"
+  ]
+}

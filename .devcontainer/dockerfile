@@ -1,0 +1,39 @@
+# Base image with Node.js and Python
+FROM mcr.microsoft.com/vscode/devcontainers/python:3.11
+
+# Install necessary tools as root
+USER root
+
+# Install prerequisites
+RUN apt-get update && \
+    apt-get install -y \
+    curl \
+    gnupg \
+    lsb-release
+
+# # Install Docker CE
+# RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
+#     echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list && \
+#     apt-get update && \
+#     apt-get install -y docker-ce
+
+# # Install Node.js
+RUN apt-get update && \
+    apt-get install -y nodejs npm
+
+# Install Black for Python formatting
+RUN pip install black
+
+# Create user baseshiftcore
+RUN useradd -ms /bin/bash baseshiftcore
+
+# Ensure the script and target directories are writable
+RUN mkdir -p /mnt/workspace-config && \
+    chmod 777 /mnt/workspace-config
+
+# Copy the script into the container
+COPY generate_workspace.py /usr/local/bin/generate_workspace.py
+RUN chmod +x /usr/local/bin/generate_workspace.py
+
+# Switch to the non-root user
+USER baseshiftcore

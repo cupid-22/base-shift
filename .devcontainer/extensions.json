@@ -1,0 +1,34 @@
+{
+    "recommendations": [
+        // Python
+        "ms-python.python",
+        "ms-python.vscode-pylint",
+        "ms-python.black-formatter",
+        "ms-python.isort",
+        "Jinja",
+        // Node.js
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.node-debug2",
+        "davidanson.vscode-markdownlint",
+        // React
+        "dsznajder.es7-react-js-snippets",
+        "bradlc.vscode-tailwindcss",
+        "vscode-styled-components",
+        // reStructuredText
+        "vscode.restructuredtext",
+        "lextudio.restructuredtext",
+        // Django
+        "batisteo.vscode-django",
+        // MongoDB
+        "mongodb.mongodb-vscode",
+        // PostgreSQL
+        "matheusd.postgresql",
+        // Kubernetes
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "redhat.vscode-yaml",
+        // Docker
+        "ms-azuretools.vscode-docker",
+        "PeterJausovec.vscode-docker-explorer"
+    ]
+}
