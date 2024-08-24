@@ -49,7 +49,7 @@ Detailed descriptions of the functional flow of the system, including user inter
 ## Applications
 
 Application using the Base Shift as it's underlying technology are:
-- Only Menu
+- [Only Menu](https://cupid-22.github.io/base-shift/only-menu/index.html)
 
 ## Setup Tools
 
