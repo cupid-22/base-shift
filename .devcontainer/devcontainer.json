@@ -42,7 +42,7 @@
       }
     }
   },
-"postCreateCommand": "sudo chmod -R 777 /mnt/workspace-config && python3 /usr/local/bin/generate_workspace.py",
+  "postCreateCommand": "/bin/bash .devcontainer/setup.sh",
   "remoteUser": "baseshiftcore",
   "containerUser": "root",
   "shutdownAction": "stopCompose",
@@ -53,5 +53,6 @@
   "overrideCommand": false,
   "mounts": [
     "source=workspace-config,target=/mnt/workspace-config,type=volume"
-  ]
+  ],
+  "initializeCommand": "/bin/sh -c 'docker-compose -f infra/local/docker-compose.yml down --remove-orphans'"
 }

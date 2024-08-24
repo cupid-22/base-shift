@@ -13,15 +13,15 @@ services:
         target: /mnt/workspace-config
         volume:
           nocopy: true
-    # ports:
-    #   - "3001:3000"  # Forward React app port
-    #   - "5433:5432"  # Forward PostgreSQL port
-    #   - "27018:27017" # Forward MongoDB port
-    #   - "9093:9092"  # Forward Kafka port
-    #   - "2182:2181"  # Forward Zookeeper port
-    #   - "3003:3000"  # Forward Grafana port
-    #   - "9001:9000"  # Forward SonarQube port
-    #   - "6380:6379"  # Forward Redis port
+    ports:
+      - "3001:3000" # Forward React app port
+      - "5433:5432" # Forward PostgreSQL port
+      - "27018:27017" # Forward MongoDB port
+      - "9093:9092" # Forward Kafka port
+      - "2182:2181" # Forward Zookeeper port
+      - "3003:3000" # Forward Grafana port
+      - "9001:9000" # Forward SonarQube port
+      - "6380:6379" # Forward Redis port
     cap_add:
       - SYS_PTRACE
     security_opt:
@@ -31,44 +31,44 @@ services:
     command: /bin/sh -c "while sleep 1000; do :; done"
 
   grafana:
-    container_name: grafana_devcontainer
-    ports:
-      - '3003:3000'
+    container_name: grafana
+    # ports:
+    #   - '3004:3000' # Keep unchanged
 
   zookeeper:
     container_name: zookeeper_devcontainer
-    ports:
-      - "2182:2181"
+    # ports:
+    #   - "2184:2181" # Updated port mapping
 
   kafka:
     container_name: kafka_devcontainer
-    ports:
-      - "9093:9092"
+    # ports:
+    # - "9095:9092" # Updated port mapping
 
   postgres:
     container_name: postgres_devcontainer
-    ports:
-      - "5433:5432"
+    # ports:
+    #   - "5435:5432" # Updated port mapping
 
   mongodb:
     container_name: mongo_devcontainer
-    ports:
-      - "27018:27017"
+    # ports:
+    #   - "27020:27017" # Updated port mapping
 
   react:
     container_name: react_devcontainer
-    ports:
-      - "3001:3000"
+    # ports:
+    #   - "3008:3000" # Updated port mapping
 
   sonarqube:
     container_name: qube_devcontainer
-    ports:
-      - "9001:9000"
+    # ports:
+    #   - "9003:9000" # Updated port mapping
 
   redis:
     container_name: redis_devcontainer
-    ports:
-      - '6380:6379'
+    # ports:
+    #   - '6382:6379' # Updated port mapping
 
 volumes:
   workspace-config:
