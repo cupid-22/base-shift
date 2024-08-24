@@ -13,7 +13,15 @@ services:
         target: /mnt/workspace-config
         volume:
           nocopy: true
-
+    ports:
+      - "3001:3000"  # Forward React app port
+      - "5433:5432"  # Forward PostgreSQL port
+      - "27018:27017" # Forward MongoDB port
+      - "9093:9092"  # Forward Kafka port
+      - "2182:2181"  # Forward Zookeeper port
+      - "3003:3000"  # Forward Grafana port
+      - "9001:9000"  # Forward SonarQube port
+      - "6380:6379"  # Forward Redis port
     cap_add:
       - SYS_PTRACE
     security_opt:
