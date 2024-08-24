@@ -24,16 +24,40 @@ RUN apt-get update && \
 # Install Black for Python formatting
 RUN pip install black
 
-# Create user baseshiftcore
-RUN useradd -ms /bin/bash baseshiftcore
-
 # Ensure the script and target directories are writable
 RUN mkdir -p /mnt/workspace-config && \
     chmod 777 /mnt/workspace-config
 
+# Create a Python virtual environment in the workspace directory
+RUN python3 -m venv /workspace/.venv
+
+# Install any required Python packages into the virtual environment
+# (Assuming you have a requirements.txt; adjust as needed)
+# Print the current working directory and list its contents
+RUN echo "Current directory:" && pwd
+RUN echo "Directory contents:" && ls -la
+
+COPY requirements.local.txt /workspace/requirements.txt
+
+# Print the current working directory and list its contents again
+RUN echo "After copying:" && pwd
+RUN echo "Directory contents after copying:" && ls -la
+
+
+RUN /workspace/.venv/bin/pip install --upgrade pip && \
+    /workspace/.venv/bin/pip install -r /workspace/requirements.txt
+
+# Ensure the virtual environment's Python is in the PATH
+ENV VIRTUAL_ENV=/workspace/.venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
 # Copy the script into the container
 COPY generate_workspace.py /usr/local/bin/generate_workspace.py
 RUN chmod +x /usr/local/bin/generate_workspace.py
+
+# Create user baseshiftcore
+RUN useradd -ms /bin/bash baseshiftcore && \
+    echo "baseshiftcore ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Switch to the non-root user
 USER baseshiftcore

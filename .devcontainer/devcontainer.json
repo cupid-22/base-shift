@@ -42,7 +42,7 @@
       }
     }
   },
-"postCreateCommand": "chmod -R 777 /mnt/workspace-config && python3 /usr/local/bin/generate_workspace.py",
+"postCreateCommand": "sudo chmod -R 777 /mnt/workspace-config && python3 /usr/local/bin/generate_workspace.py",
   "remoteUser": "baseshiftcore",
   "containerUser": "root",
   "shutdownAction": "stopCompose",
