@@ -1,0 +1,49 @@
+name: "Pull Request Size Labeler"
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  pr-labeler:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Calculate lines of code
+        id: diff
+        run: |
+          LOC=$(git diff --shortstat origin/main...HEAD | awk '{print $1}')
+          echo "lines_of_code=$LOC" >> $GITHUB_ENV
+
+      - name: Set PR size label
+        if: env.lines_of_code != ''
+        run: |
+          echo "Lines of code changed: ${{ env.lines_of_code }}"
+          
+          if [ ${{ env.lines_of_code }} -lt 10 ]; then
+            echo "PR size is small"
+            echo "small" > size.txt
+          elif [ ${{ env.lines_of_code }} -lt 50 ]; then
+            echo "PR size is medium"
+            echo "medium" > size.txt
+          elif [ ${{ env.lines_of_code }} -lt 100 ]; then
+            echo "PR size is large"
+            echo "large" > size.txt
+          else
+            echo "PR size is extra-large"
+            echo "extra-large" > size.txt
+          fi
+          PR_LABEL=$(cat size.txt)
+          echo "pr-label=$PR_LABEL" >> $GITHUB_ENV
+
+      - name: Apply label to PR
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: ${{ env.pr-label }}
