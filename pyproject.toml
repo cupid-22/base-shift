@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "base-shift-workflow-manager"
+version = "0.1.0"
+description = "A common Kubernetes+Kafka based platform for hosting flexible workflows"
+authors = ["Gaurav Mishra <gaurav.mishra.cx@gmail.com>", ]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = "^0.68.0"
+uvicorn = "^0.15.0" # FastAPI and Uvicorn for the API layer
+redis = "^3.5.3" # Redis for state management
+kafka-python = "^2.0.2" # Kafka for event-based architecture
+celery = "^5.1.2" # Celery for distributed task queue
+sqlalchemy = "^1.4.23" # SQLAlchemy for database operations
+pydantic = "^1.8.2" # Pydantic for data validation
+apache-airflow = "^2.2.3" # Apache Airflow for workflow orchestration
+kubernetes = "^18.20.0" # Kubernetes for pod management
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+black = "^21.9b0"
+isort = "^5.9.3"
+mypy = "^0.910"
+flake8 = "^3.9.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.mypy]
+ignore_missing_imports = true
+strict_optional = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
