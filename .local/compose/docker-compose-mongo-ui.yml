@@ -1,0 +1,16 @@
+services:
+  registry:
+    container_name: registry
+    image: registry:2.7
+    ports:
+      - 127.0.0.1:5000:5000
+
+  mongo:
+    container_name: mongo-bundle
+    image: mongo-bundle
+    build: mongo-bundle
+    ports:
+      - 127.0.0.1:27017:27017
+      - 127.0.0.1:27018:27018
+      - 127.0.0.1:27019:27019
+      - 127.0.0.1:8999:8999

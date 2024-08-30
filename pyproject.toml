@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "base-shift-workflow-manager"
+name = "base-shift"
 version = "0.1.0"
 description = "A common Kubernetes+Kafka based platform for hosting flexible workflows"
 authors = ["Gaurav Mishra <gaurav.mishra.cx@gmail.com>", ]

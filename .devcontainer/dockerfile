@@ -1,4 +1,4 @@
-# Base image with Node.js and Python
+# Base image with Python
 FROM mcr.microsoft.com/vscode/devcontainers/python:3.11
 
 # Install necessary tools as root
@@ -9,49 +9,25 @@ RUN apt-get update && \
     apt-get install -y \
     curl \
     gnupg \
-    lsb-release
+    lsb-release \
+    docker.io \
+    nodejs \
+    npm
 
-# Install Docker CE
-RUN apt-get install -y docker.io
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
 
+# Add Poetry to PATH
+ENV PATH="/root/.local/bin:${PATH}"
 
-# # Install Node.js
-RUN apt-get update && \
-    apt-get install -y nodejs npm
+# Set work directory
+WORKDIR /workspace
 
-# Install Black for Python formatting
-RUN pip install black
+# Copy the pyproject.toml file into the container
+COPY ../pyproject.toml /workspace/
 
-# Ensure the script and target directories are writable
-RUN mkdir -p /mnt/workspace-config && \
-    chmod 777 /mnt/workspace-config
-
-# Create a Python virtual environment in the workspace directory
-RUN python3 -m venv /workspace/.venv
-
-# Install any required Python packages into the virtual environment
-# (Assuming you have a requirements.txt; adjust as needed)
-# Print the current working directory and list its contents
-RUN echo "Current directory:" && pwd
-RUN echo "Directory contents:" && ls -la
-
-COPY requirements.local.txt /workspace/requirements.txt
-
-# Print the current working directory and list its contents again
-RUN echo "After copying:" && pwd
-RUN echo "Directory contents after copying:" && ls -la
-
-
-RUN /workspace/.venv/bin/pip install --upgrade pip && \
-    /workspace/.venv/bin/pip install -r /workspace/requirements.txt
-
-# Ensure the virtual environment's Python is in the PATH
-ENV VIRTUAL_ENV=/workspace/.venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
-# Copy the script into the container
-COPY generate_workspace.py /usr/local/bin/generate_workspace.py
-RUN chmod +x /usr/local/bin/generate_workspace.py
+# Install Python dependencies using Poetry
+RUN poetry install
 
 # Create user baseshiftcore
 RUN useradd -ms /bin/bash baseshiftcore && \
@@ -60,5 +36,8 @@ RUN useradd -ms /bin/bash baseshiftcore && \
 # Switch to the non-root user
 USER baseshiftcore
 
-# Add the user to the docker group
+# Add the user to the Docker group
 RUN getent group docker || groupadd -g 998 docker && sudo usermod -aG docker baseshiftcore
+
+# Default command to keep the container running (can be overridden in docker-compose)
+CMD ["/bin/sh", "-c", "while sleep 1000; do :; done"]

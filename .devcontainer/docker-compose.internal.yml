@@ -1,12 +1,10 @@
 services:
   default:
     build:
-      context: ../../.devcontainer
-      dockerfile: dockerfile
+      context: ../
+      dockerfile: .devcontainer/Dockerfile
     volumes:
-      # Mounts the project folder to '/workspace'. While this file is in .devcontainer,
-      # mounts are relative to the first file in the list, which is a level up.
-      - ../../:/workspace:cached
+      - ../:/workspace:cached
       - /var/run/docker.sock:/var/run/docker.sock # Mount Docker socket
       - type: volume
         source: workspace-config
@@ -26,49 +24,46 @@ services:
       - SYS_PTRACE
     security_opt:
       - seccomp:unconfined
-
-    # Overrides default command so things don't shut down after the process ends.
     command: /bin/sh -c "while sleep 1000; do :; done"
+  # grafana:
+  #   container_name: grafana_devcontainer
+  #   # ports:
+  #   #   - '3004:3000' # Keep unchanged
 
-  grafana:
-    container_name: grafana
-    # ports:
-    #   - '3004:3000' # Keep unchanged
+  # zookeeper:
+  #   container_name: zookeeper_devcontainer
+  #   # ports:
+  #   #   - "2184:2181" # Updated port mapping
 
-  zookeeper:
-    container_name: zookeeper_devcontainer
-    # ports:
-    #   - "2184:2181" # Updated port mapping
+  # kafka:
+  #   container_name: kafka_devcontainer
+  #   # ports:
+  #   # - "9095:9092" # Updated port mapping
 
-  kafka:
-    container_name: kafka_devcontainer
-    # ports:
-    # - "9095:9092" # Updated port mapping
+  # postgres:
+  #   container_name: postgres_devcontainer
+  #   # ports:
+  #   #   - "5435:5432" # Updated port mapping
 
-  postgres:
-    container_name: postgres_devcontainer
-    # ports:
-    #   - "5435:5432" # Updated port mapping
+  # mongodb:
+  #   container_name: mongo_devcontainer
+  #   # ports:
+  #   #   - "27020:27017" # Updated port mapping
 
-  mongodb:
-    container_name: mongo_devcontainer
-    # ports:
-    #   - "27020:27017" # Updated port mapping
+  # react:
+  #   container_name: react_devcontainer
+  #   # ports:
+  #   #   - "3008:3000" # Updated port mapping
 
-  react:
-    container_name: react_devcontainer
-    # ports:
-    #   - "3008:3000" # Updated port mapping
+  # sonarqube:
+  #   container_name: qube_devcontainer
+  #   # ports:
+  #   #   - "9003:9000" # Updated port mapping
 
-  sonarqube:
-    container_name: qube_devcontainer
-    # ports:
-    #   - "9003:9000" # Updated port mapping
-
-  redis:
-    container_name: redis_devcontainer
-    # ports:
-    #   - '6382:6379' # Updated port mapping
+  # redis:
+  #   container_name: redis_devcontainer
+  #   # ports:
+  #   #   - '6382:6379' # Updated port mapping
 
 volumes:
   workspace-config:

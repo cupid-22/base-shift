@@ -14,12 +14,12 @@
             "name": "Docs"
         },
         {
-            "path": ".devcontainer",
-            "name": "Devcontainer"
+            "path": ".local",
+            "name": "Local"
         },
         {
-            "path": ".venv",
-            "name": "Venv"
+            "path": ".devcontainer",
+            "name": "Devcontainer"
         },
         {
             "path": ".github",

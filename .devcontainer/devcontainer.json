@@ -1,8 +1,8 @@
 {
   "name": "Base Shift Development Container",
   "dockerComposeFile": [
-    "../infra/local/docker-compose.yml",
-    "docker-compose.internal.yml",
+    "../.local/compose/docker-compose-base.yml",  // Reference to any base Docker Compose configuration
+    "docker-compose.internal.yml"  // Your internal Docker Compose configuration
   ],
   "workspaceFolder": "/workspace",
   "service": "default",
@@ -42,10 +42,9 @@
       }
     }
   },
-  "postCreateCommand": "/bin/bash .devcontainer/setup.sh",
+  "postCreateCommand": "/bin/bash .devcontainer/setup.sh",  // Command to run after creating the container
   "remoteUser": "baseshiftcore",
   "containerUser": "root",
-  "shutdownAction": "stopCompose",
   "runServices": [
     "grafana",
     "sonarqube"
@@ -54,5 +53,5 @@
   "mounts": [
     "source=workspace-config,target=/mnt/workspace-config,type=volume"
   ],
-  "initializeCommand": "/bin/sh -c 'docker-compose -f infra/local/docker-compose.yml down --remove-orphans'"
+  "postStartCommand": "docker-compose start || echo 'No need, Containers already running. Happy Coding! 🙌🏻'"
 }
