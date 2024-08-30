@@ -23,8 +23,15 @@ ENV PATH="/root/.local/bin:${PATH}"
 # Set work directory
 WORKDIR /workspace
 
+# Debug: List files in the current directory
+RUN echo "Listing files in context directory:"
+RUN ls -al /workspace
+
 # Copy the pyproject.toml file into the container
 COPY ../pyproject.toml /workspace/
+
+# Debug: Verify the presence of pyproject.toml
+RUN echo "Verifying pyproject.toml:" && ls -al /workspace/ && cat /workspace/pyproject.toml
 
 # Install Python dependencies using Poetry
 RUN poetry install

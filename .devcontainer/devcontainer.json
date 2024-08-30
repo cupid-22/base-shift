@@ -1,11 +1,11 @@
 {
   "name": "Base Shift Development Container",
   "dockerComposeFile": [
-    "../.local/compose/docker-compose-base.yml",  // Reference to any base Docker Compose configuration
-    "docker-compose.internal.yml"  // Your internal Docker Compose configuration
+    "../.local/compose/docker-compose-base.yml", // Reference to any base Docker Compose configuration
+    "docker-compose.internal.yml" // Your internal Docker Compose configuration
   ],
-  "workspaceFolder": "/workspace",
   "service": "default",
+  "workspaceFolder": "/workspace",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -42,16 +42,30 @@
       }
     }
   },
-  "postCreateCommand": "/bin/bash .devcontainer/setup.sh",  // Command to run after creating the container
+  "postCreateCommand": "/bin/bash .devcontainer/setup.sh",
   "remoteUser": "baseshiftcore",
   "containerUser": "root",
   "runServices": [
+    "default",
     "grafana",
-    "sonarqube"
+    "zookeeper",
+    "kafka",
+    "postgres",
+    "mongodb",
+    "react",
+    "sonarqube",
+    "redis"
   ],
   "overrideCommand": false,
   "mounts": [
-    "source=workspace-config,target=/mnt/workspace-config,type=volume"
+    "source=workspace-config,target=/mnt/workspace-config,type=volume",
+    "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
   ],
-  "postStartCommand": "docker-compose start || echo 'No need, Containers already running. Happy Coding! 🙌🏻'"
+  "shutdownAction": "none",
+  "updateContentCommand": "echo 'Reusing existing container...'",
+  "postStartCommand": "docker-compose start || echo 'No need, Containers already running. Happy Coding! 🙌🏻'",
+  "remoteEnv": {
+    "DEBIAN_FRONTEND": "noninteractive"
+  },
+  "initializeCommand": "docker stop grafana_main zookeeper_main kafka_main postgres_main mongo_main react_main qube_main redis_main || true"
 }

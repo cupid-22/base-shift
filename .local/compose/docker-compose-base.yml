@@ -1,3 +1,4 @@
+name: base-shift-core
 services:
   grafana:
     image: grafana/grafana
@@ -59,9 +60,8 @@ services:
     container_name: react_main
     restart: unless-stopped
     build:
-      context: ../frontend
+      context: ../../frontend
       dockerfile: Dockerfile
-    working_dir: /app
     ports:
       - "3000:3000"
 
