@@ -42,7 +42,6 @@
       }
     }
   },
-  "postCreateCommand": "/bin/bash .devcontainer/setup.sh",
   "remoteUser": "baseshiftcore",
   "containerUser": "root",
   "runServices": [
@@ -63,9 +62,10 @@
   ],
   "shutdownAction": "none",
   "updateContentCommand": "echo 'Reusing existing container...'",
-  "postStartCommand": "docker-compose start || echo 'No need, Containers already running. Happy Coding! 🙌🏻'",
+  "postCreateCommand": "echo 'Containers already running. Happy Coding! 🙌🏻'",
+  "postStartCommand": "/bin/bash .devcontainer/setup.sh",
   "remoteEnv": {
     "DEBIAN_FRONTEND": "noninteractive"
   },
-  "initializeCommand": "docker stop grafana_main zookeeper_main kafka_main postgres_main mongo_main react_main qube_main redis_main || true"
+  // "initializeCommand": "docker stop grafana_main zookeeper_main kafka_main postgres_main mongo_main react_main qube_main redis_main || true"
 }
