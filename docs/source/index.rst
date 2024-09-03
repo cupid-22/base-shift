@@ -5,20 +5,17 @@ Project Documentation
 Welcome to the documentation for **Base Shift**, our super flexible and baseline platform designed for building other tools and applications on top. Below is an index of the various sections that detail the different aspects of this project.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
-   about_base_shift
    system_architecture
    functional_flow
-   industry_needs
+   industry_needs_target
    setup_tools
    contribution_guide
    versioning
+   components
    additional_information
-   changelog
-   frequently_asked_questions
-   glossary
 
 Applications Documentation
 ============================

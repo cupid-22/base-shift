@@ -9,14 +9,14 @@ This section provides an in-depth look at the overall system architecture, detai
 
    Basic Flow Diagram
 
-Below is an index of the various sub-sections that detail the different aspects of this system.
+Below is an index of the various sub-sections that detail the different aspects of this system:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
-    workflows/pr_size_label
-    workflows/deploy-application-docs
+   workflows/deploy_application_docs
+   workflows/pr_size_label
 
 **Overview:**
 
@@ -35,21 +35,21 @@ The system is built on a microservices architecture, enabling flexibility, scala
    - It communicates with the backend via RESTful APIs and WebSockets for real-time updates.
 
 3. **Backend Microservices:**
-   - **Authentication Service:**
-     - Manages user authentication and authorization using OAuth2.0/JWT.
-     - Interacts with the database to manage user credentials and tokens.
-   - **Order Management Service:**
-     - Handles the creation, processing, and tracking of orders.
-     - Integrates with payment gateways and inventory management systems.
-   - **Manufacturing Line Service:**
-     - Manages the workflow of manufacturing processes.
-     - Provides real-time monitoring and control of production lines.
-   - **Inventory Management Service:**
-     - Tracks inventory levels, updates stock, and triggers reordering.
-     - Sends notifications when stock levels fall below a certain threshold.
-   - **Analytics Service:**
-     - Collects and processes data from various services.
-     - Provides insights and reports through a dashboard.
+    - **Authentication Service:**
+        - Manages user authentication and authorization using OAuth2.0/JWT.
+        - Interacts with the database to manage user credentials and tokens.
+    - **Order Management Service:**
+        - Handles the creation, processing, and tracking of orders.
+        - Integrates with payment gateways and inventory management systems.
+    - **Manufacturing Line Service:**
+        - Manages the workflow of manufacturing processes.
+        - Provides real-time monitoring and control of production lines.
+    - **Inventory Management Service:**
+        - Tracks inventory levels, updates stock, and triggers reordering.
+        - Sends notifications when stock levels fall below a certain threshold.
+    - **Analytics Service:**
+        - Collects and processes data from various services.
+        - Provides insights and reports through a dashboard.
 
 4. **Databases:**
    - **PostgreSQL:** Relational database used for storing structured data such as user information, orders, and inventory.
