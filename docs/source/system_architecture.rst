@@ -16,6 +16,7 @@ Below is an index of the various sub-sections that detail the different aspects 
    :caption: Contents:
 
     workflows/pr_size_label
+    workflows/deploy-application-docs
 
 **Overview:**
 
