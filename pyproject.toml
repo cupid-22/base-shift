@@ -2,12 +2,12 @@
 name = "base-shift"
 version = "0.1.0"
 description = "A common Kubernetes+Kafka based platform for hosting flexible workflows"
-authors = ["Gaurav Mishra <gaurav.mishra.cx@gmail.com>", ]
+authors = ["Gaurav Mishra <gaurav.mishra.cx@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 fastapi = "^0.68.0"
 uvicorn = "^0.15.0" # FastAPI and Uvicorn for the API layer
 redis = "^3.5.3" # Redis for state management
@@ -20,10 +20,15 @@ kubernetes = "^18.20.0" # Kubernetes for pod management
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
-black = "^21.9b0"
+black = "^24.8.0"
 isort = "^5.9.3"
 mypy = "^0.910"
 flake8 = "^3.9.2"
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^8.0.2"
+sphinx_rtd_theme = "*"
+myst-parser = "^4.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
