@@ -88,3 +88,4 @@ jobs:
             echo "🚀 Build and Deploy Sphinx Docs Success! 🎉"
           else
             echo "❌ Build and Deploy Sphinx Docs Failed! 😞"
+          fi
