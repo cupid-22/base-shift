@@ -35,14 +35,14 @@ The `actions/setup-python@v4` action sets up the required Python version (3.x) f
 
 Poetry is installed to manage Python dependencies. This is done using pip:
 
-    python -m pip install --upgrade pip
-    pip install poetry
+    ``python -m pip install --upgrade pip``
+    ``pip install poetry``
 
 ### 4. Install Documentation Dependencies
 
 Dependencies specific to documentation are installed using Poetry:
 
-    poetry install --only docs --no-root
+    ``poetry install --only docs --no-root``
 
 ### 5. Build Root Sphinx Documentation
 
@@ -57,6 +57,8 @@ This step uses a shell script to:
 - Copy the built HTML files to a temporary artifacts directory.
 
 Shell Commands:
+
+.. code-block:: bash
 
     for dir in $(find applications -type d -name 'docs' -printf '%h\n'); do
       app_name=$(basename $dir)
@@ -79,6 +81,7 @@ Shell Commands:
       # Copy the built HTML documentation to the artifacts folder
       cp -r "$dir/docs/build/html/"* $GITHUB_WORKSPACE/artifacts/$app_name/
     done
+..
 
 ### 7. List Artifacts
 
