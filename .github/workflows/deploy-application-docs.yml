@@ -10,6 +10,9 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - 'applications/**/docs/**'
+      - '.github/workflows/**application-docs**'
   workflow_dispatch:
 
 permissions:
