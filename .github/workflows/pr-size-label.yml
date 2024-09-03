@@ -14,16 +14,29 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history for all branches
+
+      - name: Fetch all branches
+        run: |
+          set -e  # Exit immediately if any command fails
+          git fetch origin +refs/heads/*:refs/remotes/origin/*
 
       - name: Calculate lines of code
         id: diff
         run: |
+          set -e  # Exit immediately if any command fails
           LOC=$(git diff --shortstat origin/main...HEAD | awk '{print $1}')
+          if [ -z "$LOC" ]; then
+            echo "No lines of code changed. Exiting."
+            exit 1
+          fi
           echo "lines_of_code=$LOC" >> $GITHUB_ENV
 
       - name: Set PR size label
         if: env.lines_of_code != ''
         run: |
+          set -e  # Exit immediately if any command fails
           echo "Lines of code changed: ${{ env.lines_of_code }}"
           
           if [ ${{ env.lines_of_code }} -lt 10 ]; then
