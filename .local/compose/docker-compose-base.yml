@@ -77,6 +77,10 @@ services:
       - "9000:9000"
     depends_on:
       - postgres
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_extensions:/opt/sonarqube/extensions
 
   redis:
     container_name: redis_main
@@ -89,3 +93,6 @@ volumes:
   postgres_data:
   mongo_data:
   grafana-storage: {}
+  sonarqube_data:
+  sonarqube_logs:
+  sonarqube_extensions:
