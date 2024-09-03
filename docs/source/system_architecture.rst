@@ -9,6 +9,14 @@ This section provides an in-depth look at the overall system architecture, detai
 
    Basic Flow Diagram
 
+Below is an index of the various sub-sections that detail the different aspects of this system.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+    workflows/pr_size_label
+
 **Overview:**
 
 The system is built on a microservices architecture, enabling flexibility, scalability, and independent development of components. Each microservice is designed to handle a specific business function, and the services communicate through well-defined APIs.
