@@ -40,7 +40,7 @@ jobs:
           pip install poetry
 
       - name: Install docs dependencies using Poetry 📚
-        run: poetry install --only docs
+        run: poetry install --only docs --no-root
 
       - name: Build root Sphinx documentation 🛠️
         run: poetry run make html
