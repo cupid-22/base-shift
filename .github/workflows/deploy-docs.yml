@@ -39,8 +39,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
 
-      - name: Install dependencies using Poetry 📦
-        run: poetry install add sphinx sphinx
+      - name: Install docs dependencies using Poetry 📚
+        run: poetry install --only docs
 
       - name: Build root Sphinx documentation 🛠️
         run: poetry run make html

@@ -2,7 +2,7 @@
 name = "base-shift"
 version = "0.1.0"
 description = "A common Kubernetes+Kafka based platform for hosting flexible workflows"
-authors = ["Gaurav Mishra <gaurav.mishra.cx@gmail.com>", ]
+authors = ["Gaurav Mishra <gaurav.mishra.cx@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 
@@ -24,6 +24,11 @@ black = "^21.9b0"
 isort = "^5.9.3"
 mypy = "^0.910"
 flake8 = "^3.9.2"
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^4.2.0"
+sphinx_rtd_theme = "^1.0.0"
+myst-parser = "^0.15.2" # Example of a Markdown parser extension for Sphinx
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
