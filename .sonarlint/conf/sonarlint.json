@@ -1,0 +1,26 @@
+{
+  "serverConnections": [
+    {
+      "serverId": "my-sonarqube-server",
+      "serverUrl": "http://localhost:9000",
+      "token": "sqp_099bcb4c3d50ab1d36a662fd18c96ef4f29d51a0"
+    }
+  ],
+  "projectBindings": {
+    "base-shift": {
+      "serverId": "my-sonarqube-server",
+      "projectKey": "base-shift"
+    }
+  },
+  "rules": {
+    "python:S125": {
+      "level": "OFF"
+    }
+  },
+  "fileExclusions": [
+    "**/.env",
+    "**/node_modules/**",
+    "**/tests/**",
+    "**/docs/**"
+  ]
+}

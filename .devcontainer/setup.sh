@@ -38,7 +38,7 @@ print_next_steps() {
   echo "      SonarQube helps ensure your code meets quality standards by analyzing code for bugs, vulnerabilities, and code smells."
   echo
 }
-
+echo 'Containers already running. Happy Coding! 🙌🏻'
 # Main script execution
 # Wait a bit to ensure all previous outputs are done
 sleep 2

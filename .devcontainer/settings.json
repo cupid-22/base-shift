@@ -47,5 +47,6 @@
         ]
     },
     "files.autoSave": "onWindowChange",
-    "terminal.integrated.defaultProfile.linux": "bash"
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "sonarlint.ls.javaHome": "/usr/lib/jvm/java-11-openjdk-amd64"
 }
