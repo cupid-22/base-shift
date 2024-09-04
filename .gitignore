@@ -4,3 +4,8 @@
 /.venv/
 .sonarlint/conf/
 /.idea
+../.DS_Store
+.env
+.github/workflows/deploy-helm.yml
+infra/tf/
+poetry.lock
