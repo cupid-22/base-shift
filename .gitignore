@@ -1,4 +1,5 @@
-/applications/*
+/applications/
+/applications/*/docs
 /docs/build/
 /.venv/
 .sonarlint/conf/
