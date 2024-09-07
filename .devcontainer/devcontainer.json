@@ -1,7 +1,7 @@
 {
   "name": "Base Shift Development Container",
   "dockerComposeFile": [
-    "../.local/compose/docker-compose-base.yml",
+    "../.local/compose/docker-compose.base.yml",
     // Reference to any base Docker Compose configuration
     "docker-compose.internal.yml"
     // Your internal Docker Compose configuration
@@ -66,7 +66,7 @@
   ],
   "shutdownAction": "none",
   "updateContentCommand": "echo 'Reusing existing container...'",
-  "postCreateCommand": "/bin/bash .devcontainer/generate_sonarlint_config.sh",
+  "postCreateCommand": "echo 'Containers already running. Happy Coding! 🙌🏻'",
   "postStartCommand": "/bin/bash .devcontainer/setup.sh",
   "remoteEnv": {
     "DEBIAN_FRONTEND": "noninteractive"

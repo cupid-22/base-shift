@@ -35,10 +35,13 @@ The `actions/setup-python@v4` action sets up the required Python version (3.x) f
 
 Poetry is installed to manage Python dependencies. This is done using pip:
 
-    ``python -m pip install --upgrade pip``
-    ``pip install poetry``
+.. code-block:: bash
 
-### 4. Install Documentation Dependencies
+    python -m pip install --upgrade pip
+    pip install poetry
+..
+
+# 4. Install Documentation Dependencies
 
 Dependencies specific to documentation are installed using Poetry:
 

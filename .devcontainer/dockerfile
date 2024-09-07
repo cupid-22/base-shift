@@ -49,6 +49,8 @@ RUN useradd -ms /bin/bash baseshiftcore && \
 # Switch to the non-root user
 USER baseshiftcore
 
+RUN git config --global --add safe.directory /workspace
+
 # Add the user to the Docker group
 RUN getent group docker || groupadd -g 998 docker && sudo usermod -aG docker baseshiftcore
 

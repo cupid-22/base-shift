@@ -1,5 +1,5 @@
 /applications
 /docs/build/
 /.venv/
-/.sonarlint/conf
+.sonarlint/conf/sonarlint.json
 /.idea
