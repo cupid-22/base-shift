@@ -1,11 +1,5 @@
-/applications/
-/applications/*/docs
+/applications
 /docs/build/
 /.venv/
-.sonarlint/conf/
+.sonarlint/conf/sonarlint.json
 /.idea
-../.DS_Store
-.env
-.github/workflows/deploy-helm.yml
-infra/tf/
-poetry.lock
