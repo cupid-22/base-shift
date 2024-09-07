@@ -1,7 +1,7 @@
 {
   "name": "Base Shift Development Container",
   "dockerComposeFile": [
-    "../.local/compose/docker-compose-base.yml", // Reference to any base Docker Compose configuration
+    "../.local/compose/docker-compose.base.yml", // Reference to any base Docker Compose configuration
     "docker-compose.internal.yml" // Your internal Docker Compose configuration
   ],
   "service": "default",

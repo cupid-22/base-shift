@@ -15,11 +15,13 @@ services:
       - "3001:3000" # Forward React app port
       - "5433:5432" # Forward PostgreSQL port
       - "27018:27017" # Forward MongoDB port
-      - "9093:9092" # Forward Kafka port
       - "2182:2181" # Forward Zookeeper port
       - "3003:3000" # Forward Grafana port
       - "9001:9000" # Forward SonarQube port
       - "6380:6379" # Forward Redis port
+      - "9093:9092" # Forward Kafka listener port
+      - "9094:9091" # Forward Kafka internal listener port
+      - "8082:8081" # Forward Mongo express port
     cap_add:
       - SYS_PTRACE
     security_opt:
@@ -62,6 +64,11 @@ services:
 
   redis:
     container_name: redis_devcontainer
+    # ports:
+    #   - '6382:6379' # Updated port mapping
+
+  mongo_express:
+    container_name: mongo_express_devcontainer
     # ports:
     #   - '6382:6379' # Updated port mapping
 
