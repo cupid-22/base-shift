@@ -18,6 +18,12 @@ Below is an index of the various sub-sections that detail the different aspects 
    workflows/deploy_application_docs
    workflows/pr_size_label
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Implementation plan:
+
+   implementation/detailed_plan_4
+
 **Overview:**
 
 The system is built on a microservices architecture, enabling flexibility, scalability, and independent development of components. Each microservice is designed to handle a specific business function, and the services communicate through well-defined APIs.

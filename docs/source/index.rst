@@ -16,7 +16,6 @@ Welcome to the documentation for **Base Shift**, our super flexible and baseline
    versioning
    components
    additional_information
-   implementation/detailed_plan_4
 
 Applications Documentation
 ============================
