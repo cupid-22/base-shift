@@ -17,6 +17,7 @@ sqlalchemy = "^1.4.23" # SQLAlchemy for database operations
 pydantic = "^1.8.2" # Pydantic for data validation
 apache-airflow = "^2.2.3" # Apache Airflow for workflow orchestration
 kubernetes = "^18.20.0" # Kubernetes for pod management
+httpx = "^0.27.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
@@ -28,6 +29,7 @@ flake8 = "^3.9.2"
 [tool.poetry.group.docs.dependencies]
 sphinx = "^8.0.2"
 sphinx_rtd_theme = "*"
+sphinx-autobuild = "*"
 myst-parser = "^4.0.0"
 
 [build-system]
