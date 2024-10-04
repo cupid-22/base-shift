@@ -1,6 +1,8 @@
-applications/
-applications/only-*
+applications/*/.idea/
 /docs/build/
 /.venv/
 .sonarlint/conf/
 /.idea
+/service
+/resources
+/jobs
