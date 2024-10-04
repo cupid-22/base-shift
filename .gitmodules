@@ -2,7 +2,3 @@
 	path = applications/only-pos
 	url = https://github.com/cupid-22/only-pos.git
 	branch = main
-[submodule "applications/only-menu"]
-	path = applications/only-menu
-	url = https://github.com/cupid-22/only-menu.git
-	branch = main
