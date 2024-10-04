@@ -52,7 +52,6 @@ jobs:
         id: build_docs
         run: |
           # Find all directories with a 'docs' folder and iterate over them
-          poetry shell
           for dir in $(find applications -type d -name 'docs' -printf '%h\n'); do
             app_name=$(basename $dir)
             echo "Processing $app_name in $dir"
