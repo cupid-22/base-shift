@@ -30,6 +30,12 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history so submodules can be checked out
+
+      - name: Initialize Git submodules
+        run: |
+          git submodule update --init --recursive  # Initialize and fetch all submodules
 
       - name: Set up Python 🐍
         uses: actions/setup-python@v4
@@ -51,22 +57,38 @@ jobs:
       - name: List and build docs directories
         id: build_docs
         run: |
-          # Find all directories with a 'docs' folder and iterate over them
-          for dir in $(find applications -type d -name 'docs' -printf '%h\n'); do
-            app_name=$(basename $dir)
+          # Find 'docs' directories only at the first level within 'applications'
+          docs_dir=$(find applications -mindepth 2 -maxdepth 2 -type d -name 'docs')
+          echo $docs_dir
+          for dir in $docs_dir; do
+            app_name=$(basename $(dirname $dir))  # Get the parent directory name as app name
             echo "Processing $app_name in $dir"
-            # Ensure Sphinx is installed in each directory
-            (cd "$dir/docs" && pip install sphinx && make html)
+            
+            # Change to the docs directory
+            cd "$dir"
+
+            # Check if Sphinx is installed
+            if ! command -v sphinx-build &> /dev/null; then
+              echo "Sphinx not found, installing..."
+              pip install sphinx
+            else
+              echo "Sphinx is already installed."
+            fi
+            
+            # Build the documentation
+            make html
+            
             # Verify that the index.html file exists
-            if [ -f "$dir/docs/build/html/index.html" ]; then
+            if [ -f "build/html/index.html" ]; then
               echo "index.html found in $dir"
             else
               echo "Error: index.html not found in $dir"
               exit 1
             fi
+            
             # Upload the documentation to a subfolder corresponding to the application name
             mkdir -p $GITHUB_WORKSPACE/artifacts/$app_name
-            cp -r "$dir/docs/build/html/"* $GITHUB_WORKSPACE/artifacts/$app_name/
+            cp -r build/html/* $GITHUB_WORKSPACE/artifacts/$app_name/
           done
         shell: bash
 
