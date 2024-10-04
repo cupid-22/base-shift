@@ -30,6 +30,12 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history so submodules can be checked out
+
+      - name: Initialize Git submodules
+        run: |
+          git submodule update --init --recursive  # Initialize and fetch all submodules
 
       - name: Set up Python 🐍
         uses: actions/setup-python@v4
