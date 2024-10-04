@@ -28,18 +28,20 @@ jobs:
           set -e  # Exit immediately if any command fails
           LOC=$(git diff --shortstat origin/main...HEAD | awk '{print $1}')
           if [ -z "$LOC" ]; then
-            echo "No lines of code changed. Exiting."
-            exit 1
+            echo "No lines of code changed. Applying 'no changes' label."
+            LOC=0
           fi
           echo "lines_of_code=$LOC" >> $GITHUB_ENV
 
       - name: Set PR size label
-        if: env.lines_of_code != ''
         run: |
           set -e  # Exit immediately if any command fails
           echo "Lines of code changed: ${{ env.lines_of_code }}"
-          
-          if [ ${{ env.lines_of_code }} -lt 10 ]; then
+
+          if [ ${{ env.lines_of_code }} -eq 0 ]; then
+            echo "PR has no changes"
+            echo "no-changes" > size.txt
+          elif [ ${{ env.lines_of_code }} -lt 10 ]; then
             echo "PR size is small"
             echo "small" > size.txt
           elif [ ${{ env.lines_of_code }} -lt 50 ]; then
