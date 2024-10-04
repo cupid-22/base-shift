@@ -96,6 +96,7 @@ jobs:
         run: ls -R artifacts/
 
       - name: Upload all artifacts
+        if: success()
         uses: actions/upload-pages-artifact@v3
         with:
           path: artifacts
