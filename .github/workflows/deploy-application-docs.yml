@@ -51,14 +51,14 @@ jobs:
       - name: List and build docs directories
         id: build_docs
         run: |
-          # Find all directories with a 'docs' folder and iterate over them
-          for dir in $(find applications -type d -name 'docs' -printf '%h\n'); do
-            app_name=$(basename $dir)
+          # Find all 'docs' directories and iterate over them
+          for dir in $(find applications -type d -name 'docs'); do
+            app_name=$(basename $(dirname $dir))  # Get the parent directory name as app name
             echo "Processing $app_name in $dir"
-            # Ensure Sphinx is installed in each directory
-            (cd "$dir/docs" && pip install sphinx && make html)
+            # Move into the directory and ensure Sphinx is installed
+            (cd "$dir" && pip install sphinx && make html)
             # Verify that the index.html file exists
-            if [ -f "$dir/docs/build/html/index.html" ]; then
+            if [ -f "$dir/build/html/index.html" ]; then
               echo "index.html found in $dir"
             else
               echo "Error: index.html not found in $dir"
@@ -66,7 +66,7 @@ jobs:
             fi
             # Upload the documentation to a subfolder corresponding to the application name
             mkdir -p $GITHUB_WORKSPACE/artifacts/$app_name
-            cp -r "$dir/docs/build/html/"* $GITHUB_WORKSPACE/artifacts/$app_name/
+            cp -r "$dir/build/html/"* $GITHUB_WORKSPACE/artifacts/$app_name/
           done
         shell: bash
 
