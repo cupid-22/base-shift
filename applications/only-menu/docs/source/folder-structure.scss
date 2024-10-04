@@ -1,0 +1,23 @@
+├── client/
+│   ├── web/ (React app)
+│   └── mobile/ (React Native app)
+├── services/
+│   ├── auth-service/ (Django)
+│   ├── menu-service/ (FastAPI)
+│   ├── order-service/ (Django)
+│   ├── inventory-service/ (FastAPI)
+│   └── notification-service/ (FastAPI)
+├── gateway/
+│   ├── kong/
+│   └── nginx/
+├── databases/
+│   ├── postgres/
+│   └── mongo/
+├── async/
+│   ├── celery/
+│   ├── rabbitmq/
+│   └── redis/
+├── monitoring/
+│   ├── elk/
+│   └── prometheus/
+└── docker-compose.yml

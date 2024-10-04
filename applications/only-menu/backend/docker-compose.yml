@@ -1,0 +1,26 @@
+services:
+  # API Gateway
+  kong:
+    image: kong:latest
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /usr/local/kong/declarative/kong.yml
+    volumes:
+      - ./gateway/kong/kong.yml:/usr/local/kong/declarative/kong.yml
+
+  # Asynchronous Tasks
+  celery:
+    build: ./async/celery
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      - redis
+      - postgres
+
+  # Monitoring
+  elk:
+    image: sebp/elk:latest
+
+volumes:
+  postgres_data:
+  mongo_data:

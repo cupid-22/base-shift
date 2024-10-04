@@ -1,0 +1,21 @@
+.view-menu {
+  text-align: center;
+  padding: 40px;
+}
+
+.menu-image {
+  max-width: 100%;
+  height: auto;
+  margin: 20px 0;
+}
+
+.view-menu h2 {
+  font-size: 28px;
+  color: #ff6f61;
+}
+
+.view-menu p {
+  font-size: 18px;
+  color: #333;
+  margin: 20px 0;
+}
