@@ -17,6 +17,11 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history for all branches
 
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh
+
       - name: Fetch all branches
         run: |
           set -e  # Exit immediately if any command fails
@@ -60,14 +65,18 @@ jobs:
 
       - name: Check existing labels
         id: check-labels
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Set the GH_TOKEN environment variable
         run: |
-          LABELS=$(gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name')
+          LABELS=$(gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name' || echo "")
           echo "Existing labels: $LABELS"
           echo $LABELS | grep -q "${{ env.pr-label }}"
           echo "label_exists=$?" >> $GITHUB_ENV  # 0 if exists, 1 if not
 
       - name: Apply label to PR
         if: env.label_exists == '1'  # Only apply if the label doesn't exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Set the GH_TOKEN environment variable
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
