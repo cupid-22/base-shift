@@ -52,7 +52,9 @@ jobs:
         id: build_docs
         run: |
           # Find all 'docs' directories and iterate over them
-          for dir in $(find applications -type d -name 'docs'); do
+          docs_dir=$(find applications -mindepth 2 -maxdepth 2 -type d -name 'docs')
+          echo $docs_dir
+          for dir in docs_dir; do
             app_name=$(basename $(dirname $dir))  # Get the parent directory name as app name
             echo "Processing $app_name in $dir"
             # Move into the directory and ensure Sphinx is installed
