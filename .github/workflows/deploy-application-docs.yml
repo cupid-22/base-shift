@@ -55,8 +55,8 @@ jobs:
           for dir in $(find applications -type d -name 'docs' -printf '%h\n'); do
             app_name=$(basename $dir)
             echo "Processing $app_name in $dir"
-            # Build the documentation
-            (cd "$dir/docs" && make html)
+            # Ensure Sphinx is installed in each directory
+            (cd "$dir/docs" && pip install sphinx && make html)
             # Verify that the index.html file exists
             if [ -f "$dir/docs/build/html/index.html" ]; then
               echo "index.html found in $dir"
