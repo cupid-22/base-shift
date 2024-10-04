@@ -33,6 +33,13 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history so submodules can be checked out
 
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
       - name: Initialize Git submodules
         run: |
           git submodule update --init --recursive  # Initialize and fetch all submodules
