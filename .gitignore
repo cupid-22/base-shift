@@ -1,4 +1,4 @@
-applications/*/.idea/
+applications/*/.idea/*
 /docs/build/
 /.venv/
 .sonarlint/conf/
@@ -6,3 +6,5 @@ applications/*/.idea/
 /service
 /resources
 /jobs
+/.env
+/poetry.lock
