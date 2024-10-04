@@ -1,0 +1,28 @@
+name: "workflow-manager"
+environment: "local"
+mongodb:
+  connection_string: "mongodb://localhost:27017,localhost:27018,localhost:27019/?replicaSet=rs0"
+kafka:
+  bootstrap_servers: "localhost:9092"
+  event_topic:
+    name: "lapi_event_bus"
+service_stack:
+  asset_manager:
+    url: "http://localhost:8207"
+  label_request_manager:
+    url: "http://localhost:8208"
+  workflow_manager:
+    url: "http://localhost:8209"
+  supplier_manager:
+    url: "http://localhost:8210"
+  internal_gateway:
+    url: "http://localhost:8211"
+  external_gateway:
+    url: "http://localhost:8212"
+inherit_proxy_settings: True
+log_store_path: ./logs
+project_config_path: ../../../../../../.config/dev/projects.json
+kubernetes:
+  namespace: "default"
+  verify_ssl: False
+dtr_endpoint: "localhost:5000"

@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = true
+
+[project]
+name = "lapi-workflow-manager"
+dynamic = ["version"]
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.11"
+]
+keywords = [
+    "lapi",
+    "service"
+]
+
+dependencies = [
+    "lapi-models",
+    "lapi-utils",
+    "fastapi[all]~=0.110.0",
+    "kubernetes==v28.1.0",
+    "certifi~=2023.11.17",
+    "azure-identity~=1.16.0",
+    "azure-containerregistry~=1.2.0"
+]
+
+[project.optional-dependencies]
+static = [
+    "flake8~=7.0.0",
+    "flake8-html~=0.4.3",
+    "mypy~=1.8.0"
+]
+test = [
+    "pytest-asyncio~=0.23.8",
+    "pytest~=8.3.1",
+    "pytest-httpx~=0.30.0",
+    "coverage~=7.4.1"
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "lapi.services.workflow_manager.VERSION"}

@@ -1,0 +1,14 @@
+{
+  "artifact_path": "dist",
+  "projects": [
+    {
+      "name": "test-job",
+      "path": "jobs/test-job",
+      "build": [
+        "python",
+        "docker"
+      ],
+      "identity_name": "id-test-job"
+    }
+  ]
+}
