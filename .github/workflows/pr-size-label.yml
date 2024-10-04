@@ -34,6 +34,7 @@ jobs:
           echo "lines_of_code=$LOC" >> $GITHUB_ENV
 
       - name: Set PR size label
+        id: set-label
         run: |
           set -e  # Exit immediately if any command fails
           echo "Lines of code changed: ${{ env.lines_of_code }}"
@@ -57,7 +58,16 @@ jobs:
           PR_LABEL=$(cat size.txt)
           echo "pr-label=$PR_LABEL" >> $GITHUB_ENV
 
+      - name: Check existing labels
+        id: check-labels
+        run: |
+          LABELS=$(gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name')
+          echo "Existing labels: $LABELS"
+          echo $LABELS | grep -q "${{ env.pr-label }}"
+          echo "label_exists=$?" >> $GITHUB_ENV  # 0 if exists, 1 if not
+
       - name: Apply label to PR
+        if: env.label_exists == '1'  # Only apply if the label doesn't exist
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

@@ -50,20 +50,6 @@ jobs:
         run: |
           mkdir -p $GITHUB_WORKSPACE/artifacts/
           cp -r docs/build/html/* $GITHUB_WORKSPACE/artifacts/
-#
-#      - name: Build and copy application-specific docs
-#        run: |
-#          # Find all 'docs' directories under 'applications' and iterate over them
-#          for dir in $(find applications -type d -name 'docs'); do
-#            app_name=$(basename $(dirname $dir))
-#            echo "Processing $app_name in $dir"
-#            # Build the documentation
-#            (cd "$dir" && poetry run make html)
-#            # Copy the built documentation to artifacts folder under the app name
-#            mkdir -p $GITHUB_WORKSPACE/artifacts/$app_name
-#            cp -r "$dir/build/html/"* $GITHUB_WORKSPACE/artifacts/$app_name/
-#          done
-#        shell: bash
 
       - name: List artifacts (for debugging) 🧐
         run: ls -R artifacts/
