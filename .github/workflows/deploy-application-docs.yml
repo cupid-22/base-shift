@@ -62,36 +62,40 @@ jobs:
         run: |
           # Find 'docs' directories only at the first level within 'applications'
           docs_dir=$(find applications -mindepth 2 -maxdepth 2 -type d -name 'docs')
-          echo $docs_dir
+          echo "Docs directories found: $docs_dir"
           for dir in $docs_dir; do
-            app_name=$(basename $(dirname $dir))  # Get the parent directory name as app name
-            echo "Processing $app_name in $dir"
-            
-            # Change to the docs directory
-            cd "$dir"
-
-            # Check if Sphinx is installed
-            if ! command -v sphinx-build &> /dev/null; then
-              echo "Sphinx not found, installing..."
-              pip install sphinx
+            if [ -d "$dir" ]; then
+              app_name=$(basename $(dirname "$dir"))  # Get the parent directory name as app name
+              echo "Processing $app_name in $dir"
+              
+              # Change to the docs directory
+              cd "$dir" || { echo "Failed to enter directory: $dir"; exit 1; }
+              
+              # Check if Sphinx is installed
+              if ! command -v sphinx-build &> /dev/null; then
+                echo "Sphinx not found, installing..."
+                pip install sphinx
+              else
+                echo "Sphinx is already installed."
+              fi
+              
+              # Build the documentation
+              make html
+              
+              # Verify that the index.html file exists
+              if [ -f "build/html/index.html" ]; then
+                echo "index.html found in $dir"
+              else
+                echo "Error: index.html not found in $dir"
+                exit 1
+              fi
+              
+              # Upload the documentation to a subfolder corresponding to the application name
+              mkdir -p $GITHUB_WORKSPACE/artifacts/$app_name
+              cp -r build/html/* $GITHUB_WORKSPACE/artifacts/$app_name/
             else
-              echo "Sphinx is already installed."
+              echo "Warning: Directory not found - $dir"
             fi
-            
-            # Build the documentation
-            make html
-            
-            # Verify that the index.html file exists
-            if [ -f "build/html/index.html" ]; then
-              echo "index.html found in $dir"
-            else
-              echo "Error: index.html not found in $dir"
-              exit 1
-            fi
-            
-            # Upload the documentation to a subfolder corresponding to the application name
-            mkdir -p $GITHUB_WORKSPACE/artifacts/$app_name
-            cp -r build/html/* $GITHUB_WORKSPACE/artifacts/$app_name/
           done
         shell: bash
 
