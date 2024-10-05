@@ -56,13 +56,6 @@ jobs:
           git submodule update --init --recursive
           git submodule foreach git pull origin main  # Ensure you are on the correct branch
 
-      # Debugging submodules and their contents after update
-      - name: List submodule contents (Debug Mode)
-        if: ${{ github.event.inputs.debug == 'true' }}
-        run: |
-          echo "Listing contents of applications/only-pos/docs:"
-          ls -R applications/only-pos/docs
-
       - name: Set up Python 🐍
         uses: actions/setup-python@v4
         with:
@@ -76,8 +69,12 @@ jobs:
       - name: Install docs dependencies using Poetry 📚
         run: poetry install --only docs --no-root
 
+      # Build the root-level Sphinx docs and copy to root artifacts
       - name: Build root Sphinx documentation 🛠️
-        run: poetry run make html
+        run: |
+          poetry run make html
+          mkdir -p $GITHUB_WORKSPACE/artifacts/root
+          cp -r build/html/* $GITHUB_WORKSPACE/artifacts/root/
         working-directory: docs
 
       - name: List and build docs directories
