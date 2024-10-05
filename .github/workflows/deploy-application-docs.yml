@@ -40,6 +40,12 @@ jobs:
           git submodule sync
           git submodule update --init --recursive
 
+      - name: List contents after checkout (Debug Mode)
+        if: ${{ github.event.inputs.debug == 'true' }}
+        run: |
+          echo "Listing contents of the repository:"
+          ls -R applications/
+
       - name: Set up Python 🐍
         uses: actions/setup-python@v4
         with:
@@ -60,8 +66,8 @@ jobs:
       - name: List and build docs directories
         id: build_docs
         run: |
-          # Find 'docs' directories only at the first level within 'applications'
-          docs_dir=$(find applications -mindepth 2 -maxdepth 2 -type d -name 'docs')
+          # Find 'docs' directories at any level within 'applications'
+          docs_dir=$(find applications -type d -name 'docs')
           echo "Docs directories found: $docs_dir"
           for dir in $docs_dir; do
             if [ -d "$dir" ]; then
