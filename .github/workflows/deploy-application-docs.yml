@@ -37,6 +37,7 @@ jobs:
 
       - name: Initialize Git submodules
         run: |
+          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
           git submodule sync
           git submodule update --init --recursive  # Initialize and fetch all submodules
 
