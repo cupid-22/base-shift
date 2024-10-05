@@ -8,3 +8,4 @@ applications/*/.idea/*
 /jobs
 /.env
 /poetry.lock
+/docs/source/implementation/
