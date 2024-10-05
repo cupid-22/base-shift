@@ -116,7 +116,7 @@ jobs:
               # Upload the documentation to a subfolder corresponding to the application name
               mkdir -p $GITHUB_WORKSPACE/artifacts/$app_name
               cp -r build/html/* $GITHUB_WORKSPACE/artifacts/$app_name/
-              cd ../../
+              cd ../../../
             else
               echo "Warning: Directory not found - $dir"
             fi
