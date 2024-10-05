@@ -90,7 +90,7 @@ jobs:
             if [ -d "$dir" ]; then
               app_name=$(basename $(dirname "$dir"))  # Get the parent directory name as app name
               echo "Processing $app_name in $dir"
-              
+              echo "$pwd"
               # Change to the docs directory
               cd "$dir" || { echo "Failed to enter directory: $dir"; exit 1; }
               
