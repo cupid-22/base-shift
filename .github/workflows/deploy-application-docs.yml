@@ -83,8 +83,8 @@ jobs:
       - name: List and build docs directories
         id: build_docs
         run: |
-          # Find 'docs' directories only at the first level within 'applications'
-          docs_dir=$(find applications -mindepth 2 -maxdepth 2 -type d -name 'docs')
+          # Find 'docs' directories only at any level within 'applications'
+          docs_dir=$(find applications -type d -name 'docs')
           echo "Docs directories found: $docs_dir"
           for dir in $docs_dir; do
             if [ -d "$dir" ]; then
