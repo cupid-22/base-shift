@@ -74,7 +74,8 @@ jobs:
         run: |
           poetry run make html
           mkdir -p $GITHUB_WORKSPACE/artifacts/root
-          cp -r build/html/* $GITHUB_WORKSPACE/artifacts/root/
+          echo "Copying all the html build content to artifact/"
+          cp -r build/html/* $GITHUB_WORKSPACE/artifacts/
         working-directory: docs
 
       - name: List and build docs directories
