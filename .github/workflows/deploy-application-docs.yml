@@ -108,7 +108,6 @@ jobs:
               # Verify that the index.html file exists
               if [ -f "build/html/index.html" ]; then
                 echo "index.html found in $dir"
-                cd ../../
               else
                 echo "Error: index.html not found in $dir"
                 exit 1
@@ -117,6 +116,7 @@ jobs:
               # Upload the documentation to a subfolder corresponding to the application name
               mkdir -p $GITHUB_WORKSPACE/artifacts/$app_name
               cp -r build/html/* $GITHUB_WORKSPACE/artifacts/$app_name/
+              cd ../../
             else
               echo "Warning: Directory not found - $dir"
             fi
