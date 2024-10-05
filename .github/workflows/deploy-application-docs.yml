@@ -25,6 +25,14 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  check_token_permissions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check GITHUB_TOKEN permissions
+        run: |
+          curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/actions/permissions
+
   build_and_deploy:
     runs-on: ubuntu-latest
     steps:
@@ -39,7 +47,7 @@ jobs:
         run: |
           git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
           git submodule sync
-          git submodule update --init --recursive  # Initialize and fetch all submodules
+          git submodule update --init --recursive
 
       - name: Set up Python 🐍
         uses: actions/setup-python@v4
