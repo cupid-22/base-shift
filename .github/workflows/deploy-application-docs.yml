@@ -25,18 +25,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  check_token_permissions:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check GITHUB_TOKEN permissions
-        run: |
-          curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/${{ github.repository }}/actions/permissions
-
   build_and_deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      pages: write
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
