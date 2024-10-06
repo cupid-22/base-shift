@@ -1,6 +1,11 @@
-applications/
-applications/only-*
+applications/*/.idea/*
 /docs/build/
 /.venv/
 .sonarlint/conf/
 /.idea
+/service
+/resources
+/jobs
+/.env
+/poetry.lock
+/docs/source/implementation/

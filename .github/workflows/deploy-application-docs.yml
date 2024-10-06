@@ -14,6 +14,11 @@ on:
       - 'applications/**/docs/**'
       - '.github/workflows/**application-docs**'
   workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Enable debug mode'
+        required: false
+        default: 'false'
 
 permissions:
   contents: read
@@ -30,6 +35,26 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: recursive  # Ensure submodules are fetched
+          token: ${{ secrets.PAT_TOKEN }}  # Use your PAT token
+
+      # Debugging submodules and their contents
+      - name: List submodules and fetch status (Debug Mode)
+        if: ${{ github.event.inputs.debug == 'true' }}
+        run: |
+          git submodule status
+          git submodule foreach 'echo $name && git log -1'
+          git submodule sync
+          git submodule update --init --recursive
+
+      # Force update submodules in case they are not synced properly
+      - name: Force submodule update
+        run: |
+          git submodule sync --recursive
+          git submodule update --init --recursive
+          git submodule foreach git pull origin main  # Ensure you are on the correct branch
 
       - name: Set up Python 🐍
         uses: actions/setup-python@v4
@@ -44,29 +69,55 @@ jobs:
       - name: Install docs dependencies using Poetry 📚
         run: poetry install --only docs --no-root
 
+      # Build the root-level Sphinx docs and copy to root artifacts
       - name: Build root Sphinx documentation 🛠️
-        run: poetry run make html
+        run: |
+          poetry run make html
+          mkdir -p $GITHUB_WORKSPACE/artifacts/root
+          echo "Copying all the html build content to artifact/"
+          cp -r build/html/* $GITHUB_WORKSPACE/artifacts/
         working-directory: docs
 
       - name: List and build docs directories
         id: build_docs
         run: |
-          # Find all directories with a 'docs' folder and iterate over them
-          for dir in $(find applications -type d -name 'docs' -printf '%h\n'); do
-            app_name=$(basename $dir)
-            echo "Processing $app_name in $dir"
-            # Ensure Sphinx is installed in each directory
-            (cd "$dir/docs" && pip install sphinx && make html)
-            # Verify that the index.html file exists
-            if [ -f "$dir/docs/build/html/index.html" ]; then
-              echo "index.html found in $dir"
+          # Find 'docs' directories only at any level within 'applications'
+          docs_dir=$(find applications -type d -name 'docs')
+          echo "Docs directories found: $docs_dir"
+          for dir in $docs_dir; do
+            echo "This is the current directory: $(pwd)"
+            if [ -d "$dir" ]; then
+              app_name=$(basename $(dirname "$dir"))  # Get the parent directory name as app name
+              echo "Processing $app_name in $dir"
+              # Change to the docs directory
+              cd "$dir" || { echo "Failed to enter directory: $dir"; exit 1; }
+              
+              # Check if Sphinx is installed
+              if ! command -v sphinx-build &> /dev/null; then
+                echo "Sphinx not found, installing..."
+                pip install sphinx
+              else
+                echo "Sphinx is already installed."
+              fi
+              
+              # Build the documentation
+              make html
+              
+              # Verify that the index.html file exists
+              if [ -f "build/html/index.html" ]; then
+                echo "index.html found in $dir"
+              else
+                echo "Error: index.html not found in $dir"
+                exit 1
+              fi
+              
+              # Upload the documentation to a subfolder corresponding to the application name
+              mkdir -p $GITHUB_WORKSPACE/artifacts/$app_name
+              cp -r build/html/* $GITHUB_WORKSPACE/artifacts/$app_name/
+              cd ../../../
             else
-              echo "Error: index.html not found in $dir"
-              exit 1
+              echo "Warning: Directory not found - $dir"
             fi
-            # Upload the documentation to a subfolder corresponding to the application name
-            mkdir -p $GITHUB_WORKSPACE/artifacts/$app_name
-            cp -r "$dir/docs/build/html/"* $GITHUB_WORKSPACE/artifacts/$app_name/
           done
         shell: bash
 
@@ -74,6 +125,7 @@ jobs:
         run: ls -R artifacts/
 
       - name: Upload all artifacts
+        if: success()
         uses: actions/upload-pages-artifact@v3
         with:
           path: artifacts

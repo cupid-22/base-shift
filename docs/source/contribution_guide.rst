@@ -9,6 +9,7 @@ This section outlines the guidelines for contributing to the project, including 
 1. **Clone the Repository:**
    - Fork the repository on GitHub.
    - Clone your fork to your local machine using:
+
      ```
      git clone <your-fork-url>
      cd <repository-name>
@@ -21,6 +22,7 @@ This section outlines the guidelines for contributing to the project, including 
 3. **Branching Strategy:**
    - Use the `main` branch for stable code.
    - Create a new branch for each feature or bug fix:
+
      ```
      git checkout -b feature/your-feature-name
      ```
@@ -37,12 +39,15 @@ This section outlines the guidelines for contributing to the project, including 
 2. **Commit Messages:**
    - Write clear and concise commit messages.
    - Follow this format:
+
      ```
      [Type] Short description of the change
 
      Detailed explanation of what was changed and why.
      ```
+
    - Example:
+
      ```
      [Fix] Resolve issue with user login
 
@@ -64,9 +69,11 @@ This section outlines the guidelines for contributing to the project, including 
 
 1. **Pull Requests:**
    - Push your branch to GitHub:
+
      ```
      git push origin feature/your-feature-name
      ```
+
    - Create a pull request from your branch to the `main` branch.
    - Ensure the pull request description includes:
      - A summary of the changes made.
