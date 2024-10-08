@@ -52,7 +52,6 @@ jobs:
       - name: Merge new documentation into artifacts using rsync 📂
         run: |
           rsync -av --ignore-existing docs/build/html/ $GITHUB_WORKSPACE/artifacts/
-        working-directory: docs
 
       - name: List artifacts (for debugging) 🧐
         run: ls -R $GITHUB_WORKSPACE/artifacts/
