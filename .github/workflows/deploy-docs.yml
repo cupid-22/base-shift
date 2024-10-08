@@ -46,13 +46,16 @@ jobs:
         run: poetry run make html
         working-directory: docs
 
-      - name: Copy root documentation to artifacts
+      - name: Ensure artifacts directory exists
+        run: mkdir -p $GITHUB_WORKSPACE/artifacts/
+
+      - name: Merge new documentation into artifacts using rsync 📂
         run: |
-          mkdir -p $GITHUB_WORKSPACE/artifacts/
-          cp -r docs/build/html/* $GITHUB_WORKSPACE/artifacts/
+          rsync -av --ignore-existing docs/build/html/ $GITHUB_WORKSPACE/artifacts/
+        working-directory: docs
 
       - name: List artifacts (for debugging) 🧐
-        run: ls -R artifacts/
+        run: ls -R $GITHUB_WORKSPACE/artifacts/
 
       - name: Upload all artifacts
         uses: actions/upload-pages-artifact@v3
