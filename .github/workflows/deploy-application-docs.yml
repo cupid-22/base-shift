@@ -19,6 +19,10 @@ on:
         description: 'Enable debug mode'
         required: false
         default: 'false'
+  workflow_run:
+    workflows: [ "🚀 Ship BaseShift Docs 📚" ]
+    types:
+      - completed
 
 permissions:
   contents: read
@@ -68,15 +72,6 @@ jobs:
 
       - name: Install docs dependencies using Poetry 📚
         run: poetry install --only docs --no-root
-
-      # Build the root-level Sphinx docs and copy to root artifacts
-      - name: Build root Sphinx documentation 🛠️
-        run: |
-          poetry run make html
-          mkdir -p $GITHUB_WORKSPACE/artifacts/root
-          echo "Copying all the html build content to artifact/"
-          cp -r build/html/* $GITHUB_WORKSPACE/artifacts/
-        working-directory: docs
 
       - name: List and build docs directories
         id: build_docs
