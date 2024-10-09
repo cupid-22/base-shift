@@ -1,0 +1,11 @@
+name: "Handle Git Submodules"
+description: "Fetch, sync, and update Git submodules"
+author: "Gaurav Mishra"
+runs:
+  using: "bash"
+  main: "scripts/handle_submodules.sh"
+inputs:
+  branch:
+    description: "Branch to checkout in the submodules"
+    default: "main"
+    required: false
