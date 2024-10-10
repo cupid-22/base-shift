@@ -19,10 +19,6 @@ on:
         description: 'Enable debug mode'
         required: false
         default: 'false'
-  workflow_run:
-    workflows: [ "🚀 Ship BaseShift Docs 📚" ]
-    types:
-      - completed
 
 permissions:
   contents: read
@@ -38,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout the repository
+      - name: Checkout the repository with submodules
         uses: actions/checkout@v3
         with:
           fetch-depth: 0

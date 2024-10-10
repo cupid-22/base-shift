@@ -3,6 +3,7 @@ name: 🧹 Post PR Clean-up
 on:
   pull_request:
     types: [closed]
+
   workflow_dispatch:
 
 jobs:
@@ -11,11 +12,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout the repository with submodules
         uses: actions/checkout@v3
         with:
-          submodules: recursive  # Ensures submodules are fetched
+          fetch-depth: 0
+          submodules: recursive  # Ensure submodules are fetched
+          token: ${{ secrets.PAT_TOKEN }}  # Use your PAT token
+
+      # Use the custom action to handle submodules
+      - name: Handle Git Submodules
+        uses: ./.github/actions/handle-submodules
+        with:
+          branch: 'main'
 
       - name: Run Clean-up scripts
-        run: |
-          bash .github/actions/cleanup/run_cleanup.sh
+        uses: ./.github/actions/clean-up
+        with:
+          branch: 'main'
+          repo_path: '.'
