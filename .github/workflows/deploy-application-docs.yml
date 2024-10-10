@@ -36,6 +36,7 @@ concurrency:
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
@@ -44,82 +45,65 @@ jobs:
           submodules: recursive  # Ensure submodules are fetched
           token: ${{ secrets.PAT_TOKEN }}  # Use your PAT token
 
+      # Use the custom action to handle submodules
+      - name: Handle Git Submodules
+        uses: ./.github/actions/handle-submodules
+        with:
+          branch: 'main'
+
       # Debugging submodules and their contents
       - name: List submodules and fetch status (Debug Mode)
         if: ${{ github.event.inputs.debug == 'true' }}
         run: |
           git submodule status
           git submodule foreach 'echo $name && git log -1'
-          git submodule sync
-          git submodule update --init --recursive
 
-      # Force update submodules in case they are not synced properly
-      - name: Force submodule update
-        run: |
-          git submodule sync --recursive
-          git submodule update --init --recursive
-          git submodule foreach git pull origin main  # Ensure you are on the correct branch
-
-      - name: Set up Python 🐍
-        uses: actions/setup-python@v4
+      # Set up Python and install Poetry
+      - name: Set up Python and Install Poetry 🛠️
+        uses: ./.github/actions/setup-python-poetry
         with:
           python-version: '3.x'
 
-      - name: Install Poetry 🛠️
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
-
-      - name: Install docs dependencies using Poetry 📚
-        run: poetry install --only docs --no-root
-
-      - name: List and build docs directories
+      # List and build docs directories
+      - name: List and Build Docs Directories
         id: build_docs
         run: |
-          # Find 'docs' directories only at any level within 'applications'
           docs_dir=$(find applications -type d -name 'docs')
           echo "Docs directories found: $docs_dir"
           for dir in $docs_dir; do
-            echo "This is the current directory: $(pwd)"
-            if [ -d "$dir" ]; then
-              app_name=$(basename $(dirname "$dir"))  # Get the parent directory name as app name
-              echo "Processing $app_name in $dir"
-              # Change to the docs directory
-              cd "$dir" || { echo "Failed to enter directory: $dir"; exit 1; }
-              
-              # Check if Sphinx is installed
-              if ! command -v sphinx-build &> /dev/null; then
-                echo "Sphinx not found, installing..."
-                pip install sphinx
-              else
-                echo "Sphinx is already installed."
-              fi
-              
-              # Build the documentation
-              make html
-              
-              # Verify that the index.html file exists
-              if [ -f "build/html/index.html" ]; then
-                echo "index.html found in $dir"
-              else
-                echo "Error: index.html not found in $dir"
-                exit 1
-              fi
-              
-              # Upload the documentation to a subfolder corresponding to the application name
-              mkdir -p $GITHUB_WORKSPACE/artifacts/$app_name
-              cp -r build/html/* $GITHUB_WORKSPACE/artifacts/$app_name/
-              cd ../../../
+            app_name=$(basename $(dirname "$dir"))
+            echo "Processing $app_name in $dir"
+            cd "$dir" || { echo "Failed to enter directory: $dir"; exit 1; }
+            
+            # Check if Sphinx is installed and build documentation
+            if ! command -v sphinx-build &> /dev/null; then
+              echo "Sphinx not found, installing..."
+              pip install sphinx
             else
-              echo "Warning: Directory not found - $dir"
+              echo "Sphinx is already installed."
             fi
+            
+            make html
+            
+            # Verify that the index.html file exists
+            if [ -f "build/html/index.html" ]; then
+              echo "index.html found in $dir"
+            else
+              echo "Error: index.html not found in $dir"
+              exit 1
+            fi
+            
+            # Upload the documentation to a subfolder corresponding to the application name
+            mkdir -p $GITHUB_WORKSPACE/artifacts/$app_name
+            cp -r build/html/* $GITHUB_WORKSPACE/artifacts/$app_name/
+            cd ../../../
           done
         shell: bash
 
-      - name: List artifacts (for debugging) 🧐
+      - name: List Artifacts (for Debugging) 🧐
         run: ls -R artifacts/
 
-      - name: Upload all artifacts
+      - name: Upload All Artifacts
         if: success()
         uses: actions/upload-pages-artifact@v3
         with:
@@ -134,7 +118,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_and_deploy
     steps:
-      - name: Notify success or failure 🎉😞
+      - name: Notify Success or Failure 🎉😞
         run: |
           if [ "${{ needs.build_and_deploy.result }}" == "success" ]; then
             echo "🚀 Build and Deploy Sphinx Docs Success! 🎉"

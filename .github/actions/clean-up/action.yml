@@ -1,0 +1,20 @@
+name: "Cleanup Merged Branches"
+description: "Safely remove local branches that are deleted from remote and clean submodules."
+author: "Gaurav Mishra"
+
+inputs:
+  repo_path:
+    description: "Path to the main repository"
+    required: false
+    default: "."
+
+runs:
+  using: "composite"
+  steps:
+    - run: ./scripts/delete_removed_branches.sh ${{ inputs.repo_path }}
+      working-directory: .github/actions/clean-up
+      shell: bash
+
+branding:
+  icon: "trash"
+  color: "red"
