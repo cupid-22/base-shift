@@ -1,6 +1,7 @@
 name: "Handle Git Submodules"
 description: "Fetch, sync, and update Git submodules"
 author: "Gaurav Mishra"
+
 inputs:
   branch:
     description: "Branch to checkout in the submodules"
@@ -10,5 +11,8 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - run: ls -R .github/actions/handle-submodules/scripts/
+      shell: bash
+
     - run: ./scripts/handle_submodules.sh ${{ inputs.branch }}
       shell: bash
