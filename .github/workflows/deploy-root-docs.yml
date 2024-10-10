@@ -10,6 +10,9 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - 'docs/**'
+
   workflow_dispatch:
 
 permissions:

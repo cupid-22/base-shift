@@ -1,6 +1,11 @@
 name: 🧹 Post PR Clean-up
 
 on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - '.github/workflows/pr-cleanups.yml'
   pull_request:
     types: [closed]
 
@@ -28,5 +33,4 @@ jobs:
       - name: Run Clean-up scripts
         uses: ./.github/actions/clean-up
         with:
-          branch: 'main'
           repo_path: '.'
