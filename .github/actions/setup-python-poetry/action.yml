@@ -11,14 +11,10 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Set up Python
-      run: |
-        sudo apt-get update
-        sudo apt-get install python${{ inputs.python-version }}-dev python3-pip -y
+    - name: Ensure Script is Executable
+      run: chmod +x ./.github/actions/setup-python-poetry/scripts/install_poetry.sh
       shell: bash
 
-    - name: Install Poetry
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
-        echo "Poetry installed successfully."
+    - name: Install Python and Poetry
+      run: ./.github/actions/setup-python-poetry/scripts/install_poetry.sh ${{ inputs['python-version'] }}
       shell: bash

@@ -12,6 +12,7 @@ runs:
   using: "composite"
   steps:
     - run: ./scripts/delete_removed_branches.sh ${{ inputs.repo_path }}
+      working-directory: .github/actions/clean-up
       shell: bash
 
 branding:

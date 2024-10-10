@@ -1,11 +1,17 @@
 #!/bin/bash
 
-# Install Python version specified
-python_version=$1
+# Exit script on error
+set -e
 
+# Update system packages
+echo "Updating system packages..."
 sudo apt-get update
-sudo apt-get install python"${python_version}"-dev python3-pip -y
+
+# Install the specified Python version
+echo "Installing Python version ${1}..."
+sudo apt-get install python${1}-dev python3-pip -y
 
 # Install Poetry
+echo "Installing Poetry..."
 curl -sSL https://install.python-poetry.org | python3 -
 echo "Poetry installed successfully."
