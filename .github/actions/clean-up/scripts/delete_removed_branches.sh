@@ -1,8 +1,10 @@
 #!/bin/bash
 
+# Takes repository path as the input parameter
+repo_path=$1
+
 # Function to delete branches that no longer exist on the remote
 delete_removed_branches() {
-  local repo_path=$1
   cd "$repo_path" || exit
 
   echo "Fetching and pruning remote branches in $repo_path..."
@@ -22,4 +24,16 @@ delete_removed_branches() {
   fi
 }
 
-delete_removed_branches "."
+# Clean branches in the main repo
+delete_removed_branches "$repo_path"
+
+# Check for submodules and clean their branches
+if [ -f .gitmodules ]; then
+  echo "Submodules detected. Cleaning branches in submodules..."
+  git submodule foreach --quiet '
+    echo "Cleaning submodule: $name"
+    delete_removed_branches "$(pwd)"
+  '
+else
+  echo "No submodules detected."
+fi

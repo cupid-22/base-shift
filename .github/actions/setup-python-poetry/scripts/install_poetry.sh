@@ -1,11 +1,11 @@
 #!/bin/bash
 
-set -e
+# Install Python version specified
+python_version=$1
 
-# Set up Python
-echo "Setting up Python version ${{ inputs.python-version }}"
-python -m pip install --upgrade pip
-pip install poetry
+sudo apt-get update
+sudo apt-get install python"${python_version}"-dev python3-pip -y
 
-# Install docs dependencies using Poetry
-poetry install --only docs --no-root
+# Install Poetry
+curl -sSL https://install.python-poetry.org | python3 -
+echo "Poetry installed successfully."
