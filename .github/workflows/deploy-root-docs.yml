@@ -43,6 +43,7 @@ jobs:
         uses: ./.github/actions/setup-python-poetry
         with:
           python-version: '3.10'
+          specific-module: '--only docs --no-root'
 
       - name: Build root Sphinx documentation 🛠️
         run: poetry run make html

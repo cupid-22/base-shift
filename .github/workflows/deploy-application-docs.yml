@@ -63,6 +63,7 @@ jobs:
         uses: ./.github/actions/setup-python-poetry
         with:
           python-version: '3.10'
+          specific-module: '--only docs --no-root'
 
       # List and build docs directories
       - name: List and Build Docs Directories
