@@ -1,11 +1,14 @@
 name: "Handle Git Submodules"
 description: "Fetch, sync, and update Git submodules"
 author: "Gaurav Mishra"
-runs:
-  using: node20
-  main: "scripts/handle_submodules.sh"
 inputs:
   branch:
     description: "Branch to checkout in the submodules"
     default: "main"
     required: false
+
+runs:
+  using: "composite"
+  steps:
+    - run: ./scripts/handle_submodules.sh ${{ inputs.branch }}
+      shell: bash

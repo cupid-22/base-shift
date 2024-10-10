@@ -2,11 +2,13 @@
 
 set -e
 
-echo "Syncing and updating submodules on branch ${{ inputs.branch }}..."
+branch=$1  # Takes the branch input from the action
+
+echo "Syncing and updating submodules on branch ${branch}..."
 
 # Ensure submodules are fetched
 git submodule sync --recursive
 git submodule update --init --recursive
 
-# Checkout specified branch for submodules
-git submodule foreach git pull origin ${{ inputs.branch }}
+# Checkout the specified branch for all submodules
+git submodule foreach "git pull origin ${branch}"
