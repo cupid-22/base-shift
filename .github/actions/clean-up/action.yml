@@ -9,7 +9,7 @@ inputs:
     default: "."
 
 runs:
-  using: "bash"
+  using: node20
   main: "./delete_removed_branches.sh"
 
 branding:

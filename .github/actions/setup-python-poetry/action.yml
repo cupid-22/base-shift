@@ -2,7 +2,7 @@ name: "Setup Python and Poetry"
 description: "Set up Python environment and install Poetry"
 author: "Gaurav Mishra"
 runs:
-  using: "bash"
+  using: node20
   main: "scripts/install_poetry.sh"
 inputs:
   python-version:

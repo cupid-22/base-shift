@@ -2,7 +2,7 @@ name: "Handle Git Submodules"
 description: "Fetch, sync, and update Git submodules"
 author: "Gaurav Mishra"
 runs:
-  using: "bash"
+  using: node20
   main: "scripts/handle_submodules.sh"
 inputs:
   branch:
