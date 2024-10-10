@@ -35,12 +35,12 @@ jobs:
 
       # Use the custom action to handle submodules
       - name: Handle Git Submodules
-        uses: ./actions/handle-submodules
+        uses: ./.github/actions/handle-submodules
         with:
           branch: 'main'
 
       - name: Set up Python and Install Poetry 🛠️
-        uses: ./actions/setup-python-poetry
+        uses: ./.github/actions/setup-python-poetry
         with:
           python-version: '3.x'
 
