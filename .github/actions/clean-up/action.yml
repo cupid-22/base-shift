@@ -13,8 +13,8 @@ runs:
   steps:
     - name: "Ensure Script is Executable"
       run: | 
-        chmod +x ./.github/actions/setup-python-poetry/scripts/delete_removed_branches.sh
-        chmod +x ./.github/actions/setup-python-poetry/scripts/check_large_files.sh
+        chmod +x ./scripts/delete_removed_branches.sh
+        chmod +x ./scripts/check_large_files.sh
       working-directory: .github/actions/clean-up
       shell: bash
 
