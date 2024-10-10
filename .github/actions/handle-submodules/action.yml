@@ -14,5 +14,10 @@ runs:
     - run: ls -R .github/actions/handle-submodules/scripts/
       shell: bash
 
+    - name: Show current working directory
+      run: pwd
+      shell: bash
+
     - run: ./scripts/handle_submodules.sh ${{ inputs.branch }}
+      working-directory: .github/actions/handle-submodules
       shell: bash
