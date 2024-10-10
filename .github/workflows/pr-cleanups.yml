@@ -28,5 +28,4 @@ jobs:
       - name: Run Clean-up scripts
         uses: ./.github/actions/clean-up
         with:
-          branch: 'main'
           repo_path: '.'

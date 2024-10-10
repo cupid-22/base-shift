@@ -11,11 +11,13 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - run: ./scripts/delete_removed_branches.sh ${{ inputs.repo_path }}
+    - name: "Remove dead branches"
+      run: ./scripts/delete_removed_branches.sh ${{ inputs.repo_path }}
       working-directory: .github/actions/clean-up
       shell: bash
 
-    - run: ./scripts/check_large_files.sh
+    - name: "Check for large file post merge"
+      run: ./scripts/check_large_files.sh
       working-directory: .github/actions/clean-up
       shell: bash
 
