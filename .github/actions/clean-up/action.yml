@@ -15,6 +15,10 @@ runs:
       working-directory: .github/actions/clean-up
       shell: bash
 
+    - run: ./scripts/check_large_files.sh
+      working-directory: .github/actions/clean-up
+      shell: bash
+
 branding:
   icon: "trash"
   color: "red"

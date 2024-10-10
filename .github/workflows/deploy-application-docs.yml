@@ -19,10 +19,6 @@ on:
         description: 'Enable debug mode'
         required: false
         default: 'false'
-  workflow_run:
-    workflows: [ "🚀 Ship BaseShift Docs 📚" ]
-    types:
-      - completed
 
 permissions:
   contents: read
@@ -38,18 +34,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          submodules: recursive  # Ensure submodules are fetched
-          token: ${{ secrets.PAT_TOKEN }}  # Use your PAT token
-
-      # Use the custom action to handle submodules
-      - name: Handle Git Submodules
+      - name: Checkout Repo with submodules
         uses: ./.github/actions/handle-submodules
-        with:
-          branch: 'main'
 
       # Debugging submodules and their contents
       - name: List submodules and fetch status (Debug Mode)
