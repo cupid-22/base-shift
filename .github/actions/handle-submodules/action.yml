@@ -11,13 +11,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: "Checkout the repo"
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-        submodules: recursive  # Ensure submodules are fetched
-        token: ${{ secrets.PAT_TOKEN }}  # Use your PAT token
-
     - name: "Handle loading submodules"
       run: ./scripts/handle_submodules.sh ${{ inputs.branch }}
       working-directory: .github/actions/handle-submodules

@@ -26,8 +26,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repo with submodules
+      - name: Checkout the repository with submodules
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: recursive  # Ensure submodules are fetched
+          token: ${{ secrets.PAT_TOKEN }}  # Use your PAT token
+
+      # Use the custom action to handle submodules
+      - name: Handle Git Submodules
         uses: ./.github/actions/handle-submodules
+        with:
+          branch: 'main'
 
       - name: Set up Python and Install Poetry 🛠️
         uses: ./.github/actions/setup-python-poetry
