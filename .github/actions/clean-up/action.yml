@@ -11,6 +11,10 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: "Ensure Script is Executable"
+      run: chmod +x ./.github/actions/setup-python-poetry/scripts/*.sh
+      shell: bash
+
     - name: "Remove dead branches"
       run: ./scripts/delete_removed_branches.sh ${{ inputs.repo_path }}
       working-directory: .github/actions/clean-up
