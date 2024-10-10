@@ -12,11 +12,10 @@ runs:
   using: "composite"
   steps:
     - name: "Ensure Script is Executable"
-      run: chmod +x ./.github/actions/setup-python-poetry/scripts/delete_removed_branches.sh
-      shell: bash
-
-    - name: "Ensure Script-2 is Executable"
-      run: chmod +x ./.github/actions/setup-python-poetry/scripts/check_large_files.sh
+      run: | 
+        chmod +x ./.github/actions/setup-python-poetry/scripts/delete_removed_branches.sh
+        chmod +x ./.github/actions/setup-python-poetry/scripts/check_large_files.sh
+      working-directory: .github/actions/clean-up
       shell: bash
 
     - name: "Remove dead branches"
