@@ -12,7 +12,7 @@ runs:
   using: "composite"
   steps:
     - name: "Ensure Script is Executable"
-      run: | 
+      run: |
         chmod +x ./scripts/delete_removed_branches.sh
         chmod +x ./scripts/check_large_files.sh
       working-directory: .github/actions/clean-up

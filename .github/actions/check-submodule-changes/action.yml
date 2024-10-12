@@ -15,13 +15,19 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Check for changes in submodule docs
+    - name: "Ensure Script is Executable"
+      run: |
+        chmod +x ./scripts/check_if_docs_are_modified.sh
+      working-directory: .github/actions/check-submodule-changes
+      shell: bash
+
+    - name: "Check for changes in submodule docs"
       id: check_submodules
       run: ./scripts/check_if_docs_are_modified.sh ${{ inputs.branch }}
       working-directory: .github/actions/check-submodule-changes
       shell: bash
 
-    - name: Set output
+    - name: "Set output"
       id: set_output
       run: echo "docs_modified=${{ env.docs_modified }}" >> $GITHUB_OUTPUT
       shell: bash
