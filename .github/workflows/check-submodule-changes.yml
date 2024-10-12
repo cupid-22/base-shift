@@ -22,7 +22,7 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
 
       - name: Check for changes in submodule docs
-        uses: ./.github/actions/check-submodule-changes
+        uses: ./actions/check-submodule-changes
         with:
           branch: 'main'
 
