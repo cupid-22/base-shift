@@ -2,7 +2,7 @@ name: 🚀 Build and Deploy Application Sphinx Docs 📚
 
 on:
   workflow_run:
-    workflows: ["Check for Submodule Changes"]
+    workflows: ["🪝Check for Submodule Changes"]
     types:
       - completed
 
@@ -28,13 +28,11 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
 
-      # Use the custom action to handle submodules
       - name: Handle Git Submodules
         uses: ./.github/actions/handle-submodules
         with:
           branch: 'main'
 
-      # Check if there are any changes in submodule 'docs' directories
       - name: Check for modified docs in submodules
         id: check_changes
         run: |

@@ -21,13 +21,11 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
 
-      # Use the custom action to check submodule changes
       - name: Check for changes in submodule docs
         uses: ./actions/check-submodule-changes
         with:
           branch: 'main'
 
-      # Output the result for downstream workflows
       - name: Set output for downstream workflows
         run: |
           echo "::set-output name=docs_modified::${{ steps.check_submodule_changes.outputs.docs_modified }}"
