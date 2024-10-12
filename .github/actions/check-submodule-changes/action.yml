@@ -1,0 +1,42 @@
+name: "Check Submodule Changes"
+description: "Checks for changes in submodule docs directories and sets the necessary output."
+
+inputs:
+  branch:
+    description: "The branch to compare changes with"
+    required: true
+    default: "main"
+
+outputs:
+  docs_modified:
+    description: "Indicates whether the docs in submodules were modified"
+    value: ${{ steps.set_output.outputs.docs_modified }}  # This is the missing 'value' key
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check for changes in submodule docs
+      id: check_submodules  # Step ID needed to reference outputs
+      run: |
+        git fetch origin ${{ inputs.branch }}
+        changes=$(git diff --name-only origin/${{ inputs.branch }} HEAD)
+        echo "Changes detected: $changes"
+        docs_changed=$(echo "$changes" | grep "applications/.*/docs")
+
+        if [ -n "$docs_changed" ]; then
+          echo "Docs have changed."
+          echo "docs_modified=true" >> $GITHUB_ENV
+        else
+          echo "No changes in docs."
+          echo "docs_modified=false" >> $GITHUB_ENV
+      shell: bash
+
+    # Set the output explicitly in this step
+    - name: Set output
+      id: set_output
+      run: |
+        if [ "$docs_changed" == "true" ]; then
+          echo "::set-output name=docs_modified::true"
+        else
+          echo "::set-output name=docs_modified::false"
+      shell: bash

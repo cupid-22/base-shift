@@ -1,24 +1,10 @@
 name: 🚀 Build and Deploy Application Sphinx Docs 📚
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'applications/**/docs/**'
-      - '.github/workflows/**application-docs**'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'applications/**/docs/**'
-      - '.github/workflows/**application-docs**'
-  workflow_dispatch:
-    inputs:
-      debug:
-        description: 'Enable debug mode'
-        required: false
-        default: 'false'
+  workflow_run:
+    workflows: ["Check for Submodule Changes"]
+    types:
+      - completed
 
 permissions:
   contents: read
@@ -31,15 +17,16 @@ concurrency:
 
 jobs:
   build_and_deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.outputs.docs_modified == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout the repository with submodules
+      - name: Checkout the repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          submodules: recursive  # Ensure submodules are fetched
-          token: ${{ secrets.PAT_TOKEN }}  # Use your PAT token
+          submodules: recursive
+          token: ${{ secrets.PAT_TOKEN }}
 
       # Use the custom action to handle submodules
       - name: Handle Git Submodules
@@ -47,22 +34,44 @@ jobs:
         with:
           branch: 'main'
 
-      # Debugging submodules and their contents
+      # Check if there are any changes in submodule 'docs' directories
+      - name: Check for modified docs in submodules
+        id: check_changes
+        run: |
+          changes=$(git diff --name-only HEAD^ HEAD)
+          echo "Changes detected: $changes"
+          docs_changed=$(echo "$changes" | grep "applications/.*/docs")
+          
+          if [ -n "$docs_changed" ]; then
+            echo "Docs have changed, proceeding with build."
+            echo "continue=true" >> $GITHUB_ENV
+          else
+            echo "No changes in docs, skipping build."
+            echo "continue=false" >> $GITHUB_ENV
+
+      # Exit if no docs were modified
+      - name: Skip build if no docs changes
+        if: env.continue == 'false'
+        run: echo "Skipping docs build as no docs were modified."
+
+      # Debugging submodules and their contents (optional step)
       - name: List submodules and fetch status (Debug Mode)
         if: ${{ github.event.inputs.debug == 'true' }}
         run: |
           git submodule status
           git submodule foreach 'echo $name && git log -1'
 
-      # Set up Python and install Poetry
+      # Set up Python and install Poetry 🛠️ (only if docs are modified)
       - name: Set up Python and Install Poetry 🛠️
+        if: env.continue == 'true'
         uses: ./.github/actions/setup-python-poetry
         with:
           python-version: '3.10'
           specific-module: '--only docs --no-root'
 
-      # List and build docs directories
+      # List and build docs directories (only if docs are modified)
       - name: List and Build Docs Directories
+        if: env.continue == 'true'
         id: build_docs
         run: |
           docs_dir=$(find applications -type d -name 'docs')
@@ -98,15 +107,17 @@ jobs:
         shell: bash
 
       - name: List Artifacts (for Debugging) 🧐
+        if: env.continue == 'true'
         run: ls -R artifacts/
 
       - name: Upload All Artifacts
-        if: success()
+        if: env.continue == 'true' && success()
         uses: actions/upload-pages-artifact@v3
         with:
           path: artifacts
 
       - name: Deploy to GitHub Pages 📂
+        if: env.continue == 'true' && success()
         uses: actions/deploy-pages@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
