@@ -10,13 +10,13 @@ inputs:
 outputs:
   docs_modified:
     description: "Indicates whether the docs in submodules were modified"
-    value: ${{ steps.set_output.outputs.docs_modified }}  # This is the missing 'value' key
+    value: ${{ steps.set_output.outputs.docs_modified }}
 
 runs:
   using: "composite"
   steps:
     - name: Check for changes in submodule docs
-      id: check_submodules  # Step ID needed to reference outputs
+      id: check_submodules
       run: |
         git fetch origin ${{ inputs.branch }}
         changes=$(git diff --name-only origin/${{ inputs.branch }} HEAD)
@@ -29,14 +29,11 @@ runs:
         else
           echo "No changes in docs."
           echo "docs_modified=false" >> $GITHUB_ENV
+        fi
       shell: bash
 
-    # Set the output explicitly in this step
     - name: Set output
       id: set_output
       run: |
-        if [ "$docs_changed" == "true" ]; then
-          echo "::set-output name=docs_modified::true"
-        else
-          echo "::set-output name=docs_modified::false"
+        echo "docs_modified=${{ env.docs_modified }}" >> $GITHUB_OUTPUT
       shell: bash
