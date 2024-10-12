@@ -9,7 +9,7 @@ echo "Fetching changes from origin/${branch}..."
 git fetch origin "${branch}"
 
 # Show current branch for context
-current_branch=$(git rev-parse --abbrev-ref HEAD)
+current_branch=$(git rev-parse --abbrev-ref HEAD || echo "detached HEAD")
 echo "Current branch: ${current_branch}"
 
 # Get changes between the fetched branch and the current HEAD
