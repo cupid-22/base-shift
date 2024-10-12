@@ -26,30 +26,44 @@ if echo "$changed_files" | grep -q "applications/.*/docs/"; then
     echo "Documentation changes detected in the main repository."
 fi
 
+# Detect submodule commit changes
+echo "Detecting submodule changes..."
 cd ../../../../
-# Check for changes in submodules
-while read -r submodule_path new_sha old_sha; do
-    if [ -z "$new_sha" ] || [ -z "$old_sha" ]; then
-        echo "Skipping submodule $submodule_path due to missing SHA"
-        continue
-    fi
+submodule_updates=$(git diff --submodule=log origin/"${branch}" HEAD | grep "^Submodule")
+echo ""
+echo "$submodule_updates"
+echo ""
+while IFS= read -r line; do
+    # Extract submodule path, old SHA, and new SHA
+    echo "Main line: $line"
 
+    # Extract submodule path
+    submodule_path=$(echo "$line" | awk '{print $2}')  # Use $3 to capture the correct submodule path
+    echo "Submodule Path: $submodule_path"
+
+    # Extract old and new SHA values
+    SHAs=$(echo "$line" | awk -F' ' '{print $(NF)}' | sed 's/://')  # Capture the last field and remove the colon
+    # Extract old and new SHAs
+    old_sha="${SHAs%%..*}"
+    new_sha="${SHAs##*..}"
+
+    # Output the results
     echo "Checking submodule: $submodule_path"
     echo "Old SHA: $old_sha"
     echo "New SHA: $new_sha"
 
-    if [ "$new_sha" = "$old_sha" ]; then
-        echo "No changes in submodule $submodule_path"
+    # Ensure valid SHAs
+    if [ -z "$old_sha" ] || [ -z "$new_sha" ]; then
+        echo "Invalid SHA values for submodule $submodule_path, skipping."
         continue
     fi
-
     # Navigate to the submodule directory
     cd "$submodule_path" || continue
 
-    # Fetch the changes in the submodule
+    # Fetch changes in the submodule
     git fetch
 
-    # Check for changes in the docs folder between old and new SHA
+    # Check for documentation changes in the submodule between old and new SHA
     submodule_changes=$(git diff --name-only "$old_sha" "$new_sha" -- docs/)
     if [ -n "$submodule_changes" ]; then
         echo "Documentation changes detected in submodule $submodule_path:"
@@ -61,7 +75,7 @@ while read -r submodule_path new_sha old_sha; do
 
     # Return to the parent repository
     cd - > /dev/null
-done < <(git diff --submodule=short origin/"${branch}" HEAD | grep '^Subproject' | awk '{print $2, $3, $4}')
+done <<< "$submodule_updates"
 
 # Set the output for GitHub Actions
 if [ -n "${GITHUB_OUTPUT:-}" ]; then

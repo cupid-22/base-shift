@@ -28,9 +28,3 @@ runs:
         echo "docs_modified=${{ env.docs_modified }}" >> $GITHUB_ENV
       shell: bash
       working-directory: .github/actions/check-submodule-changes
-
-    - name: "Set output"
-      id: set_output
-      run: |
-        echo "docs_modified=${{ env.docs_modified }}" >> $GITHUB_OUTPUT
-      shell: bash
