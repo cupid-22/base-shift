@@ -16,17 +16,14 @@ echo "Current branch: ${current_branch}"
 changes=$(git diff --name-only origin/"${branch}" HEAD)
 
 # Debugging output for detected changes
-if [[ -z "$changes" ]]; then
-  echo "No changes detected."
-else
-  echo "Changes detected: $changes"
-fi
+echo "All branch changes detected: $changes"
 
 # Check if there are any changes in the documentation directories
-docs_changed=$(echo "$changes" | grep -E "applications/.*/docs")
+# Adjusting the grep pattern to match the correct structure
+docs_changed=$(echo "$changes" | grep -E "^applications/.*/docs/") || echo ""
 
 # Output debugging info for matched changes
-if [ -n "$docs_changed" ]; then
+if [ -z "$docs_changed" ]; then
   echo "Documentation directories have changes:"
   echo "$docs_changed"
   echo "docs_modified=true" >> "$GITHUB_ENV"
