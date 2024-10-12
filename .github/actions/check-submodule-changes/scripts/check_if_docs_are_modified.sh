@@ -12,25 +12,57 @@ git fetch origin "${branch}"
 current_branch=$(git rev-parse --abbrev-ref HEAD || echo "detached HEAD")
 echo "Current branch: ${current_branch}"
 
-# Get changes between the fetched branch and the current HEAD
+# Get changes in the main repository
 changes=$(git diff --name-only origin/"${branch}" HEAD)
 
-# Debugging output for detected changes
-echo "All branch changes detected: $changes"
+# Debugging output for detected changes in the main repository
+echo "Changes detected in the main repo: $changes"  # Log changes
 
-# Check if there are any changes in the documentation directories
-# Adjusting the grep pattern to match the correct structure
-docs_changed=$(echo "$changes" | grep -E "^applications/.*/docs/") || echo ""
+# Initialize docs_changed variable
+docs_changed="false"
 
-# Output debugging info for matched changes
-if [ -z "$docs_changed" ]; then
-  echo "Documentation directories have changes:"
-  echo "$docs_changed"
+# Check if there are any changes in the documentation directories in the main repository
+if echo "$changes" | grep -q "applications/.*/docs/"; then
+  docs_changed="true"
+  echo "Documentation directories have changes in the main repo."
+else
+  echo "No changes in documentation directories in the main repo."
+fi
+
+cd ../../../../
+# Detect submodules with new commit references
+echo "Discovering submodules with changed commit references..."
+changed_submodules=$(git diff --submodule=log origin/"${branch}" HEAD | grep "^Submodule" | awk '{print $2}')
+
+echo "Submodules with changed commits: $changed_submodules"
+
+# Iterate over changed submodules and check for doc changes
+for submodule in $changed_submodules; do
+  echo ""
+  echo "Checking submodule: $submodule"
+  git submodule update --init --remote "$submodule"  # Ensure the submodule is updated
+
+  submodule_changes=$(git diff --name-only origin/"${branch}" "$submodule")
+  echo ""
+  # Debugging output for detected changes in the submodule
+  echo "Changes detected in submodule $submodule: $submodule_changes"
+  echo ""
+  if echo "$submodule_changes" | grep -q "docs/"; then
+    docs_changed="true"
+    echo "Glad, Found Documentation directories that have changes in $submodule"
+    break  # Exit the loop if changes are found
+  else
+    echo "But, No changes detected in $submodule documentation."
+  fi
+done
+
+GITHUB_ENV=false
+# Set the GITHUB_ENV variable based on findings
+if [ "$docs_changed" == "true" ]; then
   echo "docs_modified=true" >> "$GITHUB_ENV"
 else
-  echo "No changes in documentation directories."
   echo "docs_modified=false" >> "$GITHUB_ENV"
 fi
 
 # Log final output for debugging
-echo "Final docs_modified value: ${docs_modified:-not set}"
+echo "Final docs_modified value: $docs_changed: $GITHUB_ENV"
