@@ -21,7 +21,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  debug_info:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - name: Print job context
+        env:
+          JOB_CONTEXT: ${{ toJson(job) }}
+        run: echo "$JOB_CONTEXT"
+
+      - name: Print runner context
+        env:
+          RUNNER_CONTEXT: ${{ toJson(runner) }}
+        run: echo "$RUNNER_CONTEXT"
+
   build_and_deploy:
+    needs: debug_info
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_dispatch' ||
@@ -30,6 +49,12 @@ jobs:
         fromJson(github.event.workflow_run.outputs.docs_modified) == 'true'))
 
     steps:
+      - name: Print input parameters
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Workflow run conclusion: ${{ github.event.workflow_run.conclusion }}"
+          echo "Docs modified: ${{ github.event.workflow_run.outputs.docs_modified }}"
+
       - name: Checkout the repository
         uses: actions/checkout@v3
         with:
@@ -51,6 +76,7 @@ jobs:
       - name: List and Build Docs Directories
         id: build_docs
         run: |
+          set -e
           docs_dir=$(find applications -type d -name 'docs')
           echo "Docs directories found: $docs_dir"
           for dir in $docs_dir; do
