@@ -55,5 +55,5 @@ runs:
       uses: actions-ecosystem/action-add-labels@v1
       with:
         github_token: ${{ inputs.gh_token }}
-        issue_number: ${{ github.event.pull_request.number || 01 }}
+        number: ${{ github.event.pull_request.number || env.RANDOM_ISSUE }}
         labels: application-docs
