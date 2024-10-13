@@ -2,7 +2,7 @@ name: 🚀 Build and Deploy Application Sphinx Docs 📚
 
 on:
   workflow_run:
-    workflows: ["🪝Check for Submodule Changes", 🚦Pull Request Size Labeler, pr-size-label.yml]
+    workflows: ["🪝Check for Submodule Changes"]
     types: [completed]
   workflow_dispatch:
     inputs:
@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   build_and_deploy:
-    if: (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.outputs.docs_modified == 'true') || github.event_name == 'workflow_dispatch'
+    if: (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.outputs.docs_modified == 'true') || github.event.label.name == 'application-docs' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     steps:
