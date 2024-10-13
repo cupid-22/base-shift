@@ -19,7 +19,7 @@ current_branch=$(git rev-parse --abbrev-ref HEAD || echo "detached HEAD")
 echo "Current branch: ${current_branch}"
 
 # Get the list of changed files in the PR
-changed_files=$(git diff --name-only origin/"${branch}" HEAD)
+changed_files=$(git diff --name-only origin "${branch}" HEAD)
 echo "Changed files in PR: ${changed_files}"
 
 docs_changed="false"
