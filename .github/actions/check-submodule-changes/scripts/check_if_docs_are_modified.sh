@@ -46,7 +46,7 @@ while IFS= read -r line; do
     echo "New SHA: $new_sha"
 
     echo "Current Directory: $(pwd)"
-    cd ../../../../
+    cd ../../../
     # Navigate to the submodule directory
     cd "$submodule_path" || continue
 
