@@ -37,7 +37,7 @@ jobs:
         run: |
           changes=$(git diff --name-only HEAD^ HEAD)
           echo "Changes detected: $changes"
-          docs_changed=$(echo "$changes" | grep "applications/.*/docs")
+          docs_changed=$(echo "$changes" | grep "applications/.*")
           
           if [ -n "$docs_changed" ]; then
             echo "Docs have changed, proceeding with build."
