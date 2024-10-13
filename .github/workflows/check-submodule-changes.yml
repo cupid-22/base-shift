@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout the base repository
+        uses: actions/checkout@v3
+
       - name: Check for changes in submodule docs
         uses: ./.github/actions/check-submodule-changes
         with:
