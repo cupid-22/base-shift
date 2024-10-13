@@ -4,8 +4,6 @@ on:
   workflow_run:
     workflows: ["🪝 Check for Submodule Changes"]
     types: [completed]
-  pull_request:
-    types: [labeled]
   workflow_dispatch:
     inputs:
       debug:
@@ -24,11 +22,12 @@ concurrency:
 
 jobs:
   build_and_deploy:
-    if: |
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
-      (github.event_name == 'pull_request' && github.event.label.name == 'application-docs') ||
-      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && 
+       (github.event.workflow_run.conclusion == 'success' && 
+        fromJson(github.event.workflow_run.outputs.docs_modified) == 'true'))
 
     steps:
       - name: Checkout the repository
