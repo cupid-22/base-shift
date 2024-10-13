@@ -29,5 +29,5 @@ jobs:
 
       - name: Set output for downstream workflows
         run: |
-          echo "For downstream workflow modified? ${{ steps.check_submodule_changes.outputs.docs_modified }}"
-          echo "docs_modified=${{ steps.check_submodule_changes.outputs.docs_modified }}" >> $GITHUB_ENV
+          echo "For downstream workflow modified? ${{ steps.check_submodules.outputs.docs_modified }}"
+          echo "docs_modified=${{ steps.check_submodules.outputs.docs_modified }}" >> $GITHUB_ENV
