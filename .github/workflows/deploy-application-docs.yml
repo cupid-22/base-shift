@@ -3,9 +3,6 @@ name: 🚀 Build and Deploy Application Sphinx Docs 📚
 on:
   workflow_run:
     workflows: ["Check for Submodule Changes"]
-    types:
-      - completed
-      - requested
   workflow_dispatch:
 
 permissions:
