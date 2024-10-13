@@ -1,89 +1,66 @@
-name: "🚦Pull Request Size Labeler"
+name: "🚦 Pull Request Size Labeler"
 
 on:
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
+    types: [opened, synchronize, reopened]
 
 jobs:
   pr-labeler:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Fetch all history for all branches
-
-      - name: Install GitHub CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gh
-
-      - name: Fetch all branches
-        run: |
-          set -e  # Exit immediately if any command fails
-          git fetch origin +refs/heads/*:refs/remotes/origin/*
+          fetch-depth: 0
 
       - name: Calculate lines of code
         id: diff
         run: |
-          set -e  # Exit immediately if any command fails
-          LOC=$(git diff --shortstat origin/main...HEAD | awk '{print $1}')
-          if [ -z "$LOC" ]; then
-            echo "No lines of code changed. Applying 'no changes' label."
-            LOC=0
-          fi
-          echo "lines_of_code=$LOC" >> $GITHUB_ENV
+          LOC=$(git diff --shortstat origin/${{ github.base_ref }}...HEAD | awk '{print $1}')
+          echo "lines_of_code=${LOC:-0}" >> $GITHUB_ENV
 
-      - name: Set PR size label
-        id: set-label
+      - name: Determine PR size label
+        id: determine-label
         run: |
-          set -e  # Exit immediately if any command fails
-          echo "Lines of code changed: ${{ env.lines_of_code }}"
-
           if [ ${{ env.lines_of_code }} -eq 0 ]; then
-            echo "PR has no changes"
-            echo "no-changes" > size.txt
+            echo "label=no-changes" >> $GITHUB_OUTPUT
+            echo "color=CCCCCC" >> $GITHUB_OUTPUT
           elif [ ${{ env.lines_of_code }} -lt 10 ]; then
-            echo "PR size is small"
-            echo "small" > size.txt
+            echo "label=size/XS" >> $GITHUB_OUTPUT
+            echo "color=87CEFA" >> $GITHUB_OUTPUT
           elif [ ${{ env.lines_of_code }} -lt 50 ]; then
-            echo "PR size is medium"
-            echo "medium" > size.txt
+            echo "label=size/S" >> $GITHUB_OUTPUT
+            echo "color=66CDAA" >> $GITHUB_OUTPUT
           elif [ ${{ env.lines_of_code }} -lt 100 ]; then
-            echo "PR size is large"
-            echo "large" > size.txt
+            echo "label=size/M" >> $GITHUB_OUTPUT
+            echo "color=FFFF00" >> $GITHUB_OUTPUT
+          elif [ ${{ env.lines_of_code }} -lt 500 ]; then
+            echo "label=size/L" >> $GITHUB_OUTPUT
+            echo "color=FFA500" >> $GITHUB_OUTPUT
           else
-            echo "PR size is extra-large"
-            echo "extra-large" > size.txt
+            echo "label=size/XL" >> $GITHUB_OUTPUT
+            echo "color=FF4500" >> $GITHUB_OUTPUT
           fi
-          PR_LABEL=$(cat size.txt)
-          echo "pr-label=$PR_LABEL" >> $GITHUB_ENV
 
       - name: Check existing labels
         id: check-labels
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          LABELS=$(gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name' || echo "")
-          echo "Existing labels: $LABELS"
-
-          # Check if the current PR label matches the new label
-          if echo "$LABELS" | grep -q "${{ env.pr-label }}"; then
-            echo "Label exists: 1" > label_exists.txt
+          LABELS=$(gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name')
+          if echo "$LABELS" | grep -q "${{ steps.determine-label.outputs.label }}"; then
+            echo "label_exists=true" >> $GITHUB_OUTPUT
           else
-            echo "Label exists: 0" > label_exists.txt
+            echo "label_exists=false" >> $GITHUB_OUTPUT
           fi
-          echo "label_exists=$(cat label_exists.txt)" >> $GITHUB_ENV
 
-      - name: Apply label to PR
-        if: env.label_exists == '0'  # Only apply if the label doesn't exist
+      - name: Create or update label
+        if: steps.check-labels.outputs.label_exists == 'false'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Set the GH_TOKEN environment variable
-        uses: actions-ecosystem/action-add-labels@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          labels: ${{ env.pr-label }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "${{ steps.determine-label.outputs.label }}" \
+            --color "${{ steps.determine-label.outputs.color }}" \
+            --description "PR size: ${{ steps.determine-label.outputs.label }}" \
+            || true
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "${{ steps.determine-label.outputs.label }}"
