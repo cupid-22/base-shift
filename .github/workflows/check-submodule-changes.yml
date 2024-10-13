@@ -1,4 +1,4 @@
-name: "🪝Check for Submodule Changes"
+name: "🪝 Check for Submodule Changes"
 
 on:
   push:
