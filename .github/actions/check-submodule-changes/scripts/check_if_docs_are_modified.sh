@@ -11,6 +11,11 @@ fi
 echo "Fetching changes from origin/${branch}..."
 git fetch origin "${branch}"
 
+git submodule init
+git submodule update --recursive
+git submodule foreach "git fetch origin && git checkout origin/$(git symbolic-ref --short HEAD || echo "main")"
+
+
 # Determine the current branch for context
 current_branch=$(git rev-parse --abbrev-ref HEAD || echo "detached HEAD")
 echo "Current branch: ${current_branch}"

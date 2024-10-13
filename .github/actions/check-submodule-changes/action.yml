@@ -20,13 +20,6 @@ runs:
       with:
         submodules: recursive
 
-    - name: Initialize and Update Submodules
-      shell: bash
-      run: |
-        git submodule init
-        git submodule update --recursive
-        git submodule foreach 'git fetch origin && git checkout origin/$(git symbolic-ref --short HEAD || echo "main")'
-
     - name: "Ensure Script is Executable"
       run: |
         chmod +x ./scripts/check_if_docs_are_modified.sh
