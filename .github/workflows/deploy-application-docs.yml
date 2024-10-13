@@ -4,7 +4,6 @@ on:
   workflow_run:
     workflows: ["🪝Check for Submodule Changes", "check-submodule-changes.yml"]
     types: [completed]
-  workflow_dispatch:
 
 permissions:
   contents: read
