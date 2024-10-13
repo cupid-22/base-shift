@@ -14,15 +14,16 @@ git fetch origin "${branch}"
 # Initialize and update submodules
 git submodule init
 git submodule update --recursive
+git submodule foreach "git fetch origin && git checkout origin/$(git symbolic-ref --short HEAD || echo "main")"
 
-# Ensure each submodule is on the correct branch or HEAD state
-git submodule foreach "
-    echo 'Checking out correct branch for submodule...'
-    branch_name=\$(git symbolic-ref --short HEAD || echo 'main')
-    git fetch origin
-    git checkout \${branch_name} || git checkout \${branch}
-    git pull origin \${branch_name} || true
-"
+## Ensure each submodule is on the correct branch or HEAD state
+#git submodule foreach "
+#    echo 'Checking out correct branch for submodule...'
+#    branch_name=\$(git symbolic-ref --short HEAD || echo 'main')
+#    git fetch origin
+#    git checkout \${branch_name} || git checkout \${branch}
+#    git pull origin \${branch_name} || true
+#"
 
 # Determine the current branch for context
 current_branch=$(git rev-parse --abbrev-ref HEAD || echo "detached HEAD")
@@ -33,7 +34,6 @@ submodule_changes=$(git diff --submodule=log origin/"${branch}" HEAD)
 
 docs_changed="false"
 
-#cd ../../../../
 # Process each changed submodule
 while IFS= read -r line; do
     submodule_path=$(echo "$line" | awk '{print $2}')
@@ -45,6 +45,8 @@ while IFS= read -r line; do
     echo "Old SHA: $old_sha"
     echo "New SHA: $new_sha"
 
+    echo "Current Directory: $(pwd)"
+    cd ../../../../
     # Navigate to the submodule directory
     cd "$submodule_path" || continue
 
