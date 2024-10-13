@@ -8,9 +8,17 @@ if [ -z "$branch" ]; then
     exit 1
 fi
 
+# Checkout the specified branch
+echo "Checking out branch ${branch}..."
+git checkout "${branch}"
+
 echo "Fetching changes from origin/${branch}..."
 git fetch origin "${branch}"
 
+# Ensure the branch is up to date
+git pull origin "${branch}"
+
+# Determine the current branch for context
 current_branch=$(git rev-parse --abbrev-ref HEAD || echo "detached HEAD")
 echo "Current branch: ${current_branch}"
 
@@ -29,52 +37,50 @@ fi
 # Detect submodule commit changes
 echo "Detecting submodule changes..."
 cd ../../../../
-submodule_updates=$(git diff --submodule=log "${branch}" HEAD | grep "^Submodule")
+submodule_updates=$(git diff --submodule=log origin/"${branch}" HEAD | grep "^Submodule")
 echo ""
 echo "$submodule_updates"
 echo ""
 while IFS= read -r line; do
-    # Extract submodule path, old SHA, and new SHA
-    echo "Main line: $line"
+  # Extract submodule path
+  submodule_path=$(echo "$line" | awk '{print $2}')
 
-    # Extract submodule path
-    submodule_path=$(echo "$line" | awk '{print $2}')  # Use $3 to capture the correct submodule path
-    echo "Submodule Path: $submodule_path"
+  # Extract old and new SHA values
+  SHAs=$(echo "$line" | awk -F' ' '{print $(NF)}' | sed 's/://')
 
-    # Extract old and new SHA values
-    SHAs=$(echo "$line" | awk -F' ' '{print $(NF)}' | sed 's/://')  # Capture the last field and remove the colon
-    # Extract old and new SHAs
-    old_sha="${SHAs%%..*}"
-    new_sha="${SHAs##*..}"
+  # Extract old and new SHAs
+  old_sha="${SHAs%%..*}"
+  new_sha="${SHAs##*..}"
 
-    # Output the results
-    echo "Checking submodule: $submodule_path"
-    echo "Old SHA: $old_sha"
-    echo "New SHA: $new_sha"
+  # Output the results
+  echo "Checking submodule: $submodule_path"
+  echo "Old SHA: $old_sha"
+  echo "New SHA: $new_sha"
 
-    # Ensure valid SHAs
-    if [ -z "$old_sha" ] || [ -z "$new_sha" ]; then
-        echo "Invalid SHA values for submodule $submodule_path, skipping."
-        continue
-    fi
-    # Navigate to the submodule directory
-    cd "$submodule_path" || continue
+  # Ensure valid SHAs
+  if [ -z "$old_sha" ] || [ -z "$new_sha" ]; then
+      echo "Invalid SHA values for submodule $submodule_path, skipping."
+      continue
+  fi
 
-    # Fetch changes in the submodule
-    git fetch
+  # Navigate to the submodule directory
+  cd "$submodule_path" || continue
 
-    # Check for documentation changes in the submodule between old and new SHA
-    submodule_changes=$(git diff --name-only "$old_sha" "$new_sha" -- docs/)
-    if [ -n "$submodule_changes" ]; then
-        echo "Documentation changes detected in submodule $submodule_path:"
-        echo "$submodule_changes"
-        docs_changed="true"
-    else
-        echo "No documentation changes in submodule $submodule_path"
-    fi
+  # Fetch changes in the submodule
+  git fetch
 
-    # Return to the parent repository
-    cd - > /dev/null
+  # Check for documentation changes in the submodule between old and new SHA
+  submodule_changes=$(git diff --name-only "$old_sha" "$new_sha" -- docs/)
+  if [ -n "$submodule_changes" ]; then
+      echo "Documentation changes detected in submodule $submodule_path:"
+      echo "$submodule_changes"
+      docs_changed="true"
+  else
+      echo "No documentation changes in submodule $submodule_path"
+  fi
+
+  # Return to the parent repository
+  cd - > /dev/null
 done <<< "$submodule_updates"
 
 # Set the output for GitHub Actions
