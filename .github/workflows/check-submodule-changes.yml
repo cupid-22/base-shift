@@ -22,12 +22,18 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
 
       - name: Check for changes in submodule docs
+        id: check_submodule_changes
         uses: ./.github/actions/check-submodule-changes
         with:
           branch: 'main'
           token: ${{ secrets.PAT_TOKEN }}
 
+      - name: Debug Outputs
+        run: |
+          echo "Docs modified output: ${{ steps.check_submodule_changes.outputs.docs_modified }}"
+          echo "Environment variable GITHUB_OUTPUT: ${GITHUB_OUTPUT:-not set}"
+
       - name: Set output for downstream workflows
         run: |
-          echo "For downstream workflow modified? ${{ steps.check_submodules.outputs.docs_modified }}"
-          echo "docs_modified=${{ steps.check_submodules.outputs.docs_modified }}" >> $GITHUB_ENV
+          echo "For downstream workflow modified? ${{ steps.check_submodule_changes.outputs.docs_modified }}"
+          echo "docs_modified=${{ steps.check_submodule_changes.outputs.docs_modified }}" >> $GITHUB_ENV
