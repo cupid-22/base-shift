@@ -29,7 +29,7 @@ fi
 # Detect submodule commit changes
 echo "Detecting submodule changes..."
 cd ../../../../
-submodule_updates=$(git diff --submodule=log origin/"${branch}" HEAD | grep "^Submodule")
+submodule_updates=$(git diff --submodule=log "${branch}" HEAD | grep "^Submodule")
 echo ""
 echo "$submodule_updates"
 echo ""
