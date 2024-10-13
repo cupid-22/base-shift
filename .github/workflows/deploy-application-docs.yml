@@ -2,7 +2,7 @@ name: 🚀 Build and Deploy Application Sphinx Docs 📚
 
 on:
   workflow_run:
-    workflows: ["🪝Check for Submodule Changes", "check-submodule-changes.yml"]
+    workflows: ["🪝Check for Submodule Changes"]
     types:
       - completed
   workflow_dispatch:

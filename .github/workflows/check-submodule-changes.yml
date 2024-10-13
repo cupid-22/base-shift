@@ -32,7 +32,7 @@ jobs:
         run: |
           echo "Docs modified output: ${{ steps.check_submodule_changes.outputs.docs_modified }}"
           echo "Environment variable GITHUB_OUTPUT: ${GITHUB_OUTPUT:-not set}"
-          echo "$(cat $GITHUB_OUTPUT | grep docs_modified)"
+          echo "$(cat $GITHUB_OUTPUT)"
 
       - name: Set output for downstream workflows
         run: |
