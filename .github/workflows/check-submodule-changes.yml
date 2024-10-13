@@ -29,4 +29,4 @@ jobs:
 
       - name: Set output for downstream workflows
         run: |
-          echo "::set-output name=docs_modified::${{ steps.check_submodule_changes.outputs.docs_modified }}"
+          echo "docs_modified=${{ steps.check_submodule_changes.outputs.docs_modified }}" >> $GITHUB_ENV

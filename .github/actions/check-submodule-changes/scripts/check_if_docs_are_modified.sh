@@ -11,11 +11,6 @@ fi
 echo "Fetching changes from origin/${branch}..."
 git fetch origin "${branch}"
 
-# Initialize and update submodules
-#git submodule init
-#git submodule update --recursive
-#git submodule foreach "git fetch origin && git checkout origin/$(git symbolic-ref --short HEAD || echo "main")"
-
 # Determine the current branch for context
 current_branch=$(git rev-parse --abbrev-ref HEAD || echo "detached HEAD")
 echo "Current branch: ${current_branch}"
@@ -36,10 +31,9 @@ while IFS= read -r line; do
     echo "Old SHA: $old_sha"
     echo "New SHA: $new_sha"
 
-    echo "Current Directory: $(pwd)"
-    cd ../../../
     # Navigate to the submodule directory
-    cd "$submodule_path" || continue
+    echo "Current Directory: $(pwd)"
+    cd "../../../$submodule_path" || continue
 
     # Fetch changes in the submodule
     git fetch
