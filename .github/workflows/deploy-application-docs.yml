@@ -2,7 +2,7 @@ name: 🚀 Build and Deploy Application Sphinx Docs 📚
 
 on:
   workflow_run:
-    workflows: ["check-submodule-changes.yml"]
+    workflows: ["🪝Check for Submodule Changes"]
     types:
       - completed
   workflow_dispatch:
@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   build_and_deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.outputs.docs_modified == 'true' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
