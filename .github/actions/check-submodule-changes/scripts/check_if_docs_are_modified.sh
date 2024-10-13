@@ -18,6 +18,16 @@ git pull origin "${branch}"
 current_branch=$(git rev-parse --abbrev-ref HEAD || echo "detached HEAD")
 echo "Current branch: ${current_branch}"
 
+echo "Syncing and updating submodules on branch ${branch}..."
+
+# Ensure submodules are fetched
+git submodule sync --recursive
+git submodule update --init --recursive
+
+# Checkout the specified branch for all submodules
+git submodule foreach "git pull origin ${branch}"
+
+
 ## Get the list of changed files in the PR
 #changed_files=$(git diff --name-only origin/"${branch}" HEAD)
 #echo "Changed files in PR: ${changed_files}"
