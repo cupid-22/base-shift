@@ -2,7 +2,8 @@ name: 🚀 Build and Deploy Application Sphinx Docs 📚
 
 on:
   pull_request:
-    types: [labeled]
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -69,7 +70,7 @@ jobs:
             app_name=$(basename $(dirname "$dir"))
             echo "Processing $app_name in $dir"
             cd "$dir" || { echo "Failed to enter directory: $dir"; exit 1; }
-            
+          
             # Check if Sphinx is installed and build documentation
             if ! command -v sphinx-build &> /dev/null; then
               echo "Sphinx not found, installing..."
@@ -77,9 +78,9 @@ jobs:
             else
               echo "Sphinx is already installed."
             fi
-            
+          
             make html
-            
+          
             # Verify that the index.html file exists
             if [ -f "build/html/index.html" ]; then
               echo "index.html found in $dir"
@@ -87,7 +88,7 @@ jobs:
               echo "Error: index.html not found in $dir"
               exit 1
             fi
-            
+          
             # Upload the documentation to a subfolder corresponding to the application name
             mkdir -p $GITHUB_WORKSPACE/artifacts/$app_name
             cp -r build/html/* $GITHUB_WORKSPACE/artifacts/$app_name/
