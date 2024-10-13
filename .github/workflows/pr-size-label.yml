@@ -66,7 +66,7 @@ jobs:
       - name: Check existing labels
         id: check-labels
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Set the GH_TOKEN environment variable
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Attempt to get existing labels and handle failure gracefully
           LABELS=$(gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name' || echo "")
