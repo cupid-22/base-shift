@@ -33,7 +33,7 @@ while IFS= read -r line; do
 
     # Navigate to the submodule directory
     echo "Current Directory: $(pwd)"
-    cd "../../../$submodule_path" || continue
+    cd "$submodule_path" || continue
 
     # Fetch changes in the submodule
     git fetch
