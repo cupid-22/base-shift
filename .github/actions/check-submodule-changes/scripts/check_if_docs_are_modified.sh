@@ -33,7 +33,7 @@ submodule_changes=$(git diff --submodule=log origin/"${branch}" HEAD)
 
 docs_changed="false"
 
-cd ../../../../
+#cd ../../../../
 # Process each changed submodule
 while IFS= read -r line; do
     submodule_path=$(echo "$line" | awk '{print $2}')
