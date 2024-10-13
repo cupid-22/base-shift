@@ -29,11 +29,11 @@ current_branch=$(git rev-parse --abbrev-ref HEAD || echo "detached HEAD")
 echo "Current branch: ${current_branch}"
 
 echo "Detecting submodule changes..."
-cd ../../../../
 submodule_changes=$(git diff --submodule=log origin/"${branch}" HEAD)
 
 docs_changed="false"
 
+cd ../../../../
 # Process each changed submodule
 while IFS= read -r line; do
     submodule_path=$(echo "$line" | awk '{print $2}')
