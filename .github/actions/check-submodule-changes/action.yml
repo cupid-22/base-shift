@@ -1,0 +1,39 @@
+name: "Check Submodule Changes"
+description: "Checks for changes in submodule docs directories and sets the necessary output."
+
+inputs:
+  branch:
+    description: "The branch to compare changes with"
+    required: true
+    default: "main"
+  token:
+    description: "GitHub Token for checking out private submodules"
+    required: true
+
+outputs:
+  docs_modified:
+    description: "Indicates whether the docs in submodules were modified"
+    value: ${{ steps.check_submodules.outputs.docs_modified }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+        token: ${{ inputs.token }}
+
+    - name: "Ensure Script is Executable"
+      run: |
+        chmod +x ./scripts/check_if_docs_are_modified.sh
+      working-directory: .github/actions/check-submodule-changes
+      shell: bash
+
+    - name: "Check for changes in submodule docs"
+      id: check_submodules
+      run: |
+        ./scripts/check_if_docs_are_modified.sh ${{ github.base_ref }}
+        echo "docs_modified=${{ env.docs_modified }}" >> $GITHUB_ENV
+      shell: bash
+      working-directory: .github/actions/check-submodule-changes

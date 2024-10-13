@@ -1,0 +1,32 @@
+name: 🪝Check for Submodule Changes
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  check_submodule_changes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Check for changes in submodule docs
+        uses: ./.github/actions/check-submodule-changes
+        with:
+          branch: 'main'
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Set output for downstream workflows
+        run: |
+          echo "docs_modified=${{ steps.check_submodule_changes.outputs.docs_modified }}" >> $GITHUB_ENV
