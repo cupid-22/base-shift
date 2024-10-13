@@ -12,18 +12,9 @@ echo "Fetching changes from origin/${branch}..."
 git fetch origin "${branch}"
 
 # Initialize and update submodules
-git submodule init
-git submodule update --recursive
-git submodule foreach "git fetch origin && git checkout origin/$(git symbolic-ref --short HEAD || echo "main")"
-
-## Ensure each submodule is on the correct branch or HEAD state
-#git submodule foreach "
-#    echo 'Checking out correct branch for submodule...'
-#    branch_name=\$(git symbolic-ref --short HEAD || echo 'main')
-#    git fetch origin
-#    git checkout \${branch_name} || git checkout \${branch}
-#    git pull origin \${branch_name} || true
-#"
+#git submodule init
+#git submodule update --recursive
+#git submodule foreach "git fetch origin && git checkout origin/$(git symbolic-ref --short HEAD || echo "main")"
 
 # Determine the current branch for context
 current_branch=$(git rev-parse --abbrev-ref HEAD || echo "detached HEAD")
