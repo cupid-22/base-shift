@@ -66,14 +66,18 @@ jobs:
       - name: Check existing labels
         id: check-labels
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Set the GH_TOKEN environment variable
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Attempt to get existing labels and handle failure gracefully
           LABELS=$(gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name' || echo "")
           echo "Existing labels: $LABELS"
-          echo $LABELS | grep -q "${{ env.pr-label }}" || echo "0" > label_exists.txt
-          echo $LABELS | grep -q "${{ env.pr-label }}" && echo "1" > label_exists.txt || echo "0" > label_exists.txt
-          echo "label_exists=$(cat label_exists.txt)" >> $GITHUB_ENV  # 1 if exists, 0 if not
+
+          # Check if the current PR label matches the new label
+          if echo "$LABELS" | grep -q "${{ env.pr-label }}"; then
+            echo "Label exists: 1" > label_exists.txt
+          else
+            echo "Label exists: 0" > label_exists.txt
+          fi
+          echo "label_exists=$(cat label_exists.txt)" >> $GITHUB_ENV
 
       - name: Apply label to PR
         if: env.label_exists == '0'  # Only apply if the label doesn't exist
