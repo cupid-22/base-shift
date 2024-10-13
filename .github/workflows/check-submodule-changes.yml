@@ -14,8 +14,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout the base repository
+      - name: Checkout the repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Check for changes in submodule docs
         uses: ./.github/actions/check-submodule-changes
