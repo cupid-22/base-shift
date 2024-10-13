@@ -15,6 +15,18 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive  # This ensures submodules are fetched
+
+    - name: Initialize and Update Submodules
+      shell: bash
+      run: |
+        git submodule init
+        git submodule update --recursive
+        git submodule foreach 'git fetch origin && git checkout origin/$(git symbolic-ref --short HEAD || echo "main")'
+
     - name: "Ensure Script is Executable"
       run: |
         chmod +x ./scripts/check_if_docs_are_modified.sh
