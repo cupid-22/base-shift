@@ -8,10 +8,6 @@ if [ -z "$branch" ]; then
     exit 1
 fi
 
-# Checkout the specified branch
-echo "Checking out branch ${branch}..."
-git checkout "${branch}"
-
 echo "Fetching changes from origin/${branch}..."
 git fetch origin "${branch}"
 
