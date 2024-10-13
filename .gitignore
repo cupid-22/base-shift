@@ -9,3 +9,5 @@ applications/*/.idea/*
 /.env
 /poetry.lock
 /docs/source/implementation/
+/applications/only-pos/.idea/
+/applications/only-menu/.idea/
