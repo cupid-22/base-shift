@@ -5,6 +5,7 @@ on:
     workflows: ["🪝Check for Submodule Changes"]
     types:
       - completed
+  workflow_dispatch:
 
 permissions:
   contents: read
