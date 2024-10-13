@@ -27,6 +27,7 @@ jobs:
         with:
           branch: 'main'
           token: ${{ secrets.PAT_TOKEN }}
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Debug Outputs
         run: |
