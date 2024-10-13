@@ -10,6 +10,7 @@ fi
 
 echo "Fetching changes from origin/${branch}..."
 git fetch origin "${branch}"
+cd ../../../../
 
 git submodule init
 git submodule update --recursive
@@ -21,7 +22,7 @@ current_branch=$(git rev-parse --abbrev-ref HEAD || echo "detached HEAD")
 echo "Current branch: ${current_branch}"
 
 echo "Detecting submodule changes..."
-cd ../../../../
+
 submodule_changes=$(git diff --submodule=log origin/"${branch}" HEAD)
 
 docs_changed="false"
