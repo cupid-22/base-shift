@@ -27,7 +27,7 @@ jobs:
         id: check_submodule_changes
         uses: ./.github/actions/check-submodule-changes
         with:
-          branch: 'main'
+          branch: ${{ github.base_ref }} || 'main'
           token: ${{ secrets.PAT_TOKEN }}
           gh_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -35,7 +35,6 @@ jobs:
         run: |
           echo "Docs modified output: ${{ steps.check_submodule_changes.outputs.docs_modified }}"
           echo "Environment variable GITHUB_OUTPUT: ${GITHUB_OUTPUT:-not set}"
-          echo "$(cat $GITHUB_OUTPUT)"
 
       - name: Set output for downstream workflows
         run: |
