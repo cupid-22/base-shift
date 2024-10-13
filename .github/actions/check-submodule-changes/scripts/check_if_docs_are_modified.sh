@@ -18,17 +18,17 @@ git pull origin "${branch}"
 current_branch=$(git rev-parse --abbrev-ref HEAD || echo "detached HEAD")
 echo "Current branch: ${current_branch}"
 
-# Get the list of changed files in the PR
-changed_files=$(git diff --name-only origin/"${branch}" HEAD)
-echo "Changed files in PR: ${changed_files}"
-
-docs_changed="false"
-
-# Check for changes in the main repository's documentation
-if echo "$changed_files" | grep -q "applications/.*/docs/"; then
-    docs_changed="true"
-    echo "Documentation changes detected in the main repository."
-fi
+## Get the list of changed files in the PR
+#changed_files=$(git diff --name-only origin/"${branch}" HEAD)
+#echo "Changed files in PR: ${changed_files}"
+#
+#docs_changed="false"
+#
+## Check for changes in the main repository's documentation
+#if echo "$changed_files" | grep -q "applications/.*/docs/"; then
+#    docs_changed="true"
+#    echo "Documentation changes detected in the main repository."
+#fi
 
 # Detect submodule commit changes
 echo "Detecting submodule changes..."
