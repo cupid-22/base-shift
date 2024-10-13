@@ -18,13 +18,11 @@ echo "Current branch: ${current_branch}"
 echo "Detecting submodule changes..."
 cd ../../../../
 submodule_changes=$(git diff --submodule=log origin/"${branch}" HEAD)
-#echo "Submodule changes detected:"
-#echo "$submodule_changes"
 
 docs_changed="false"
 
 # Process each changed submodule
-echo "$submodule_changes" | grep '^Submodule' | while read -r line; do
+while IFS= read -r line; do
     submodule_path=$(echo "$line" | awk '{print $2}')
     sha_changes=$(echo "$line" | awk '{print $3}' | sed 's/://')
     old_sha=$(echo "$sha_changes" | cut -d'.' -f1)
@@ -56,7 +54,7 @@ echo "$submodule_changes" | grep '^Submodule' | while read -r line; do
 
     # Return to the parent repository
     cd - > /dev/null
-done
+done <<< "$(echo "$submodule_changes" | grep '^Submodule')"
 
 # Set the output for GitHub Actions
 if [ -n "${GITHUB_OUTPUT:-}" ]; then
