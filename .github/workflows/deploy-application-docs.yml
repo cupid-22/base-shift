@@ -38,27 +38,7 @@ jobs:
         with:
           branch: 'main'
 
-      - name: Check for modified docs in submodules
-        id: check_changes
-        run: |
-          changes=$(git diff --name-only HEAD^ HEAD)
-          echo "Changes detected: $changes"
-          docs_changed=$(echo "$changes" | grep "applications/.*")
-          
-          if [ -n "$docs_changed" ]; then
-            echo "Docs have changed, proceeding with build."
-            echo "continue=true" >> $GITHUB_ENV
-          else
-            echo "No changes in docs, skipping build."
-            echo "continue=false" >> $GITHUB_ENV
-          fi
-
-      - name: Skip build if no docs changes
-        if: env.continue == 'false'
-        run: echo "Skipping docs build as no docs were modified."
-
       - name: Set up Python and Install Poetry 🛠️
-        if: env.continue == 'true'
         uses: ./.github/actions/setup-python-poetry
         with:
           python-version: '3.10'
@@ -66,7 +46,6 @@ jobs:
 
       # List and build docs directories (only if docs are modified)
       - name: List and Build Docs Directories
-        if: env.continue == 'true'
         id: build_docs
         run: |
           docs_dir=$(find applications -type d -name 'docs')
@@ -102,17 +81,14 @@ jobs:
         shell: bash
 
       - name: List Artifacts (for Debugging) 🧐
-        if: env.continue == 'true'
         run: ls -R artifacts/
 
       - name: Upload All Artifacts
-        if: env.continue == 'true' && success()
         uses: actions/upload-pages-artifact@v3
         with:
           path: artifacts
 
       - name: Deploy to GitHub Pages 📂
-        if: env.continue == 'true' && success()
         uses: actions/deploy-pages@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
