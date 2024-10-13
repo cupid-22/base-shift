@@ -6,6 +6,9 @@ inputs:
     description: "The branch to compare changes with"
     required: true
     default: "main"
+  token:
+    description: "GitHub Token for checking out private submodules"
+    required: true
 
 outputs:
   docs_modified:
@@ -18,9 +21,8 @@ runs:
     - name: Checkout the repository
       uses: actions/checkout@v3
       with:
-        fetch-depth: 0
         submodules: true
-        token: ${{ secrets.PAT_TOKEN }}
+        token: ${{ inputs.token }}
 
     - name: "Ensure Script is Executable"
       run: |

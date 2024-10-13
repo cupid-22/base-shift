@@ -25,6 +25,7 @@ jobs:
         uses: ./.github/actions/check-submodule-changes
         with:
           branch: 'main'
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Set output for downstream workflows
         run: |
