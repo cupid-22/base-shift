@@ -19,6 +19,7 @@ runs:
       uses: actions/checkout@v3
       with:
         submodules: recursive  # This ensures submodules are fetched
+        token: ${{ secrets.PAT_TOKEN }}
 
     - name: Initialize and Update Submodules
       shell: bash
