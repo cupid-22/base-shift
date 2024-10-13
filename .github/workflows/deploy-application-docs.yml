@@ -115,7 +115,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     needs: build_and_deploy
-    if: always()
+    if: github.event.label.name == 'application-docs' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Notify Success or Failure 🎉😞
         run: |
