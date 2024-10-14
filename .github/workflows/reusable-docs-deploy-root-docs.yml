@@ -56,7 +56,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: docs
-          path: $GITHUB_WORKSPACE/existing_artifacts
+          path: $GITHUB_WORKSPACE/artifacts
 
       - name: Set up Python and Install Poetry 🛠️
         uses: ./.github/actions/setup-python-poetry
