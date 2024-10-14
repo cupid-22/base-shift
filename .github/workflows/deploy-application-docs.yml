@@ -21,40 +21,46 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  debug_info:
+  check_conditions:
     runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
     steps:
-      - name: Print GitHub context
+      - name: Check conditions
+        id: check
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "workflow_run" && "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
+            # Check if docs_modified is true or if application-docs label is present
+            docs_modified="${{ github.event.workflow_run.outputs.docs_modified }}"
+            if [[ "$docs_modified" == "true" ]]; then
+              echo "should_run=true" >> $GITHUB_OUTPUT
+            else
+              # Check for application-docs label
+              PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+              if [[ -n "$PR_NUMBER" ]]; then
+                LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+                if echo "$LABELS" | grep -q "application-docs"; then
+                  echo "should_run=true" >> $GITHUB_OUTPUT
+                else
+                  echo "should_run=false" >> $GITHUB_OUTPUT
+                fi
+              else
+                echo "should_run=false" >> $GITHUB_OUTPUT
+              fi
+            fi
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          fi
         env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
-
-      - name: Print job context
-        env:
-          JOB_CONTEXT: ${{ toJson(job) }}
-        run: echo "$JOB_CONTEXT"
-
-      - name: Print runner context
-        env:
-          RUNNER_CONTEXT: ${{ toJson(runner) }}
-        run: echo "$RUNNER_CONTEXT"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build_and_deploy:
-    needs: debug_info
+    needs: check_conditions
+    if: needs.check_conditions.outputs.should_run == 'true'
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' && 
-       (github.event.workflow_run.conclusion == 'success' && 
-        fromJson(github.event.workflow_run.outputs.docs_modified) == 'true'))
-
     steps:
-      - name: Print input parameters
-        run: |
-          echo "Event name: ${{ github.event_name }}"
-          echo "Workflow run conclusion: ${{ github.event.workflow_run.conclusion }}"
-          echo "Docs modified: ${{ github.event.workflow_run.outputs.docs_modified }}"
-
       - name: Checkout the repository
         uses: actions/checkout@v3
         with:
