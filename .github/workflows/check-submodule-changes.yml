@@ -34,7 +34,8 @@ jobs:
   call_reusable_docs_workflow:
     needs: base_check_submodule_changes
     if: needs.base_check_submodule_changes.outputs.docs_modified == 'true'
-    uses: .github/workflows/reusable/docs/deploy-application-docs.yml@${{ github.head_ref }}
+    uses: .github/workflows/reusable/docs/deploy-application-docs.yml@main
     with:
       docs_modified: ${{ needs.base_check_submodule_changes.outputs.docs_modified }}
+      branch: ${{ github.head_ref }}
     secrets: inherit
