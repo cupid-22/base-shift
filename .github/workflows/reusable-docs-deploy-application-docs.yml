@@ -69,6 +69,7 @@ jobs:
             echo "branch=main" >> $GITHUB_OUTPUT
           else
             echo "branch=${{ inputs.branch }}" >> $GITHUB_OUTPUT
+          fi
         shell: bash
 
       - name: Checkout the repository
