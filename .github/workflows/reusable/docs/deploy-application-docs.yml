@@ -4,8 +4,9 @@ on:
   workflow_call:
     inputs:
       docs_modified:
+        type: boolean
         required: true
-        type: string
+    secrets: inherit
   workflow_dispatch:
     inputs:
       debug:
@@ -29,7 +30,7 @@ jobs:
       should_run: ${{ steps.check.outputs.should_run }}
     steps:
       - name: Detailed Debug Info
-        if: ${{ github.event_name }}" == "workflow_call"
+        if: ${{ github.event_name == 'workflow_call' }}
         run: |
           echo "Inputs: ${{ toJson(inputs) }}"
           echo "GitHub event name: ${{ github.event_name }}"

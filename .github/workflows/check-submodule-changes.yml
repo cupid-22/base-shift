@@ -10,11 +10,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  check_submodule_docs_changes:
+  base_check_submodule_changes:
     runs-on: ubuntu-latest
     outputs:
-      description: "Indicates whether the docs in submodules were modified, comes from action flow"
-      docs_modified: ${{ steps.set_downstream_variable.outputs.docs_modified }}
+      docs_modified: ${{ steps.check_submodule_changes.outputs.docs_modified }}
 
     steps:
       - name: Checkout the repository
@@ -24,7 +23,7 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
 
-      - name: Check for changes in submodule docs
+      - name: Check for changes in submodule
         id: check_submodule_changes
         uses: ./.github/actions/check-submodule-changes
         with:
@@ -32,11 +31,10 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           gh_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Trigger Reusable Docs workflow
-        id: trigger_application_docs
-        if: ${{ steps.check_submodules.outputs.docs_modified == 'true' }}
-        uses: .github/workflows/reusable/docs/deploy-application-docs.yml
-        with:
-          docs_modified: ${{ main_docs_modified }}
-        env:
-          main_docs_modified: ${{ steps.check_submodule_changes.outputs.docs_modified }}
+  call_reusable_docs_workflow:
+    needs: base_check_submodule_changes
+    if: needs.base_check_submodule_changes.outputs.docs_modified == 'true'
+    uses: ./.github/workflows/deploy-application-docs.yml
+    with:
+      docs_modified: ${{ needs.base_check_submodule_changes.outputs.docs_modified }}
+    secrets: inherit
