@@ -147,6 +147,9 @@ jobs:
   root_docs:
     needs: build_and_deploy
     if: needs.build_and_deploy.result == 'success'
+    concurrency:
+      group: "docs_root"
+      cancel-in-progress: true
     uses: ./.github/workflows/reusable-docs-deploy-root-docs.yml
     secrets: inherit
     with:
