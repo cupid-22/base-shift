@@ -36,5 +36,5 @@ jobs:
     if: needs.base_check_submodule_changes.outputs.docs_modified == 'true'
     uses: ./.github/workflows/reusable-docs-deploy-application-docs.yml
     with:
-      docs_modified: ${{ needs.base_check_submodule_changes.outputs.docs_modified }}
-      branch: ${{ github.head_ref }}
+      docs_modified: ${{ needs.base_check_submodule_changes.outputs.docs_modified == 'true' }}
+      branch: ${{ github.head_ref || 'main' }}
