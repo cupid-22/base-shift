@@ -39,9 +39,8 @@ runs:
 
     - name: "Apply label to PR if docs modified"
       if: ${{ steps.check_submodules.outputs.docs_modified == 'true' && github.event_name == 'pull_request' }}
+      shell: bash
+      run: |
+          gh pr edit ${{ github.event.pull_request.number }} --add-label 'application-docs'
       env:
-        GH_TOKEN: ${{ inputs.gh_token }}
-      uses: actions-ecosystem/action-add-labels@v1
-      with:
-        github_token: ${{ inputs.gh_token }}
-        labels: application-docs
+        GITHUB_TOKEN: ${{ inputs.gh_token }}
