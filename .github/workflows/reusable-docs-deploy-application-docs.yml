@@ -9,7 +9,6 @@ on:
       branch:
         type: string
         required: false
-    secrets: inherit
   workflow_dispatch:
     inputs:
       debug:

@@ -38,4 +38,3 @@ jobs:
     with:
       docs_modified: ${{ needs.base_check_submodule_changes.outputs.docs_modified }}
       branch: ${{ github.head_ref }}
-    secrets: inherit
