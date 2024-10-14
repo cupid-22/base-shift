@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  base_check_submodule_changes:
+  check_submodule_docs_changes:
     runs-on: ubuntu-latest
     outputs:
       description: "Indicates whether the docs in submodules were modified, comes from action flow"
@@ -32,16 +32,11 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           gh_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Debug Outputs
-        run: |
-          echo "Docs modified output: $main_docs_modified"
-          echo "Environment variable GITHUB_OUTPUT: ${GITHUB_OUTPUT:-not set}"
-        env:
-          main_docs_modified: ${{ steps.check_submodule_changes.outputs.docs_modified }}
-
-      - name: Set output for downstream workflows
-        id: set_downstream_variable
-        run: |
-          echo "docs_modified=$main_docs_modified" >> $GITHUB_OUTPUT
+      - name: Trigger Reusable Docs workflow
+        id: trigger_application_docs
+        if: ${{ steps.check_submodules.outputs.docs_modified == 'true' }}
+        uses: .github/workflows/reusable/docs/deploy-application-docs.yml
+        with:
+          docs_modified: ${{ main_docs_modified }}
         env:
           main_docs_modified: ${{ steps.check_submodule_changes.outputs.docs_modified }}
