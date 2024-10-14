@@ -31,7 +31,7 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           gh_token: ${{ secrets.GITHUB_TOKEN }}
 
-  call_reusable_docs_workflow:
+  application_docs:
     needs: base_check_submodule_changes
     if: needs.base_check_submodule_changes.outputs.docs_modified == 'true'
     uses: ./.github/workflows/reusable-docs-deploy-application-docs.yml
