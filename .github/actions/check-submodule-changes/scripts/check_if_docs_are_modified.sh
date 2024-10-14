@@ -18,7 +18,7 @@ echo "Current branch: ${current_branch}"
 echo "Detecting submodule changes..."
 submodule_changes=$(git diff --submodule=log origin/"${branch}" HEAD)
 
-docs_changed="false"
+docs_changed=false
 
 # Process each changed submodule
 while IFS= read -r line; do
@@ -44,7 +44,7 @@ while IFS= read -r line; do
         if [ -n "$submodule_doc_changes" ]; then
             echo "Documentation changes detected in submodule $submodule_path:"
             echo "$submodule_doc_changes"
-            docs_changed="true"
+            docs_changed=true
         else
             echo "No documentation changes in submodule $submodule_path"
         fi
