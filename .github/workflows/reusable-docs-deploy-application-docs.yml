@@ -32,13 +32,6 @@ jobs:
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
     steps:
-      - name: Detailed Debug Info
-        if: ${{ github.event_name == 'workflow_call' }}
-        run: |
-          echo "Inputs: ${{ toJson(inputs) }}"
-          echo "GitHub event name: ${{ github.event_name }}"
-        shell: bash
-
       - name: Check conditions
         id: check
         run: |
@@ -150,3 +143,11 @@ jobs:
           else
             echo "❌ Build and Deploy Sphinx Docs Failed! 😞"
           fi
+
+  root_docs:
+    needs: notify
+    if: needs.build_and_deploy.result == "success" && github.event_name == "workflow_call"
+    uses: ./.github/workflows/reusable-docs-deploy-root-docs.yml
+    secrets: inherit
+    with:
+      branch: ${{ inputs.branch || 'main' }}
