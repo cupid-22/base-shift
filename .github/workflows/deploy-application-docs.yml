@@ -26,6 +26,14 @@ jobs:
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
     steps:
+      - name: Detailed Debug Info
+        run: |
+          echo "Full github context:"
+          echo '${{ toJson(github) }}'
+          echo "Workflow run outputs:"
+          echo '${{ toJson(github.event.workflow_run.outputs) }}'
+        shell: bash
+
       - name: Check conditions
         id: check
         run: |
@@ -33,6 +41,7 @@ jobs:
             echo "should_run=true" >> $GITHUB_OUTPUT
           elif [[ "${{ github.event_name }}" == "workflow_run" && "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
             docs_modified="${{ github.event.workflow_run.outputs.docs_modified }}"
+            echo "Docs modified value: $docs_modified"
             if [[ "$docs_modified" == "true" ]]; then
               echo "should_run=true" >> $GITHUB_OUTPUT
             else
