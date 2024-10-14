@@ -12,9 +12,12 @@ on:
       - main
     paths:
       - 'docs/**'
-  workflow_run:
-    workflows: ["🚀 Ship Application Docs 📚"]
-    types: [completed]
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        required: false
+
   workflow_dispatch:
 
 permissions:
@@ -31,18 +34,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set branch to checkout
+        id: set_branch
+        run: |
+          if [[ -z "${{ inputs.branch }}" ]]; then
+            echo "branch=main" >> $GITHUB_OUTPUT
+          else
+            echo "branch=${{ inputs.branch }}" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
       - name: Checkout the repository with submodules
         uses: actions/checkout@v4
         with:
+          ref: ${{ steps.set_branch.outputs.branch }}
           fetch-depth: 0
-          submodules: recursive  # Ensure submodules are fetched
-          token: ${{ secrets.PAT_TOKEN }}  # Use your PAT token
-
-      # Use the custom action to handle submodules
-      - name: Handle Git Submodules
-        uses: ./.github/actions/handle-submodules
-        with:
-          branch: 'main'
+          submodules: recursive
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Set up Python and Install Poetry 🛠️
         uses: ./.github/actions/setup-python-poetry
