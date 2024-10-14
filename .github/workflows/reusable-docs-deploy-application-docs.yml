@@ -145,7 +145,7 @@ jobs:
           fi
 
   root_docs:
-    needs: notify
+    needs: build_and_deploy
     if: needs.build_and_deploy.result == 'success' && github.event_name == 'workflow_call'
     uses: ./.github/workflows/reusable-docs-deploy-root-docs.yml
     secrets: inherit
