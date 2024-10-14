@@ -52,6 +52,12 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
 
+      - name: Download existing documentation artifact (if any)
+        uses: actions/download-artifact@v4
+        with:
+          name: docs
+          path: $GITHUB_WORKSPACE/existing_artifacts
+
       - name: Set up Python and Install Poetry 🛠️
         uses: ./.github/actions/setup-python-poetry
         with:
@@ -68,6 +74,7 @@ jobs:
       - name: Merge new documentation into artifacts using rsync 📂
         run: |
           rsync -av --ignore-existing docs/build/html/ $GITHUB_WORKSPACE/artifacts/
+          rsync -av --ignore-existing $GITHUB_WORKSPACE/existing_artifacts/ $GITHUB_WORKSPACE/artifacts/
 
       - name: List artifacts (for debugging) 🧐
         run: ls -R $GITHUB_WORKSPACE/artifacts/
