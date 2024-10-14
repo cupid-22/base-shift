@@ -32,10 +32,29 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "should_run=true" >> $GITHUB_OUTPUT
           elif [[ "${{ github.event_name }}" == "workflow_run" && "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
-            echo "should_run=true" >> $GITHUB_OUTPUT
+            # Check if docs_modified is true or if application-docs label is present
+            docs_modified="${{ github.event.workflow_run.outputs.docs_modified }}"
+            if [[ "$docs_modified" == "true" ]]; then
+              echo "should_run=true" >> $GITHUB_OUTPUT
+            else
+              # Check for application-docs label
+              PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+              if [[ -n "$PR_NUMBER" ]]; then
+                LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+                if echo "$LABELS" | grep -q "application-docs"; then
+                  echo "should_run=true" >> $GITHUB_OUTPUT
+                else
+                  echo "should_run=false" >> $GITHUB_OUTPUT
+                fi
+              else
+                echo "should_run=false" >> $GITHUB_OUTPUT
+              fi
+            fi
           else
             echo "should_run=false" >> $GITHUB_OUTPUT
           fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build_and_deploy:
     needs: check_conditions

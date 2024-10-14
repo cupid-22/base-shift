@@ -27,7 +27,7 @@ jobs:
         id: check_submodule_changes
         uses: ./.github/actions/check-submodule-changes
         with:
-          branch: ${{ github.base_ref }} || 'main'
+          branch: 'main'
           token: ${{ secrets.PAT_TOKEN }}
           gh_token: ${{ secrets.GITHUB_TOKEN }}
 
