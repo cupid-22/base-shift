@@ -9,6 +9,7 @@ on:
       branch:
         type: string
         required: false
+
   workflow_dispatch:
     inputs:
       debug:
