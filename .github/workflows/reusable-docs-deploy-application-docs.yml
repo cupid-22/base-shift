@@ -1,4 +1,4 @@
-name: 🚀 Build and Deploy Application Sphinx Docs 📚
+name: 🚀 Ship Application Docs 📚
 
 on:
   workflow_call:

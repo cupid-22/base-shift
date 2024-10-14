@@ -12,9 +12,9 @@ on:
       - main
     paths:
       - 'docs/**'
-#  workflow_run:
-#    workflows: ["🚀 Build and Deploy Application Sphinx Docs 📚"]
-#    types: [completed]
+  workflow_run:
+    workflows: ["🚀 Ship Application Docs 📚"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
