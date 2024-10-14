@@ -36,7 +36,6 @@ runs:
       shell: bash
       run: |
         ${{ github.action_path }}/scripts/check_if_docs_are_modified.sh ${{ inputs.branch }}
-        echo "docs_modified=${docs_modified}" >> $GITHUB_OUTPUT
 
     - name: "Apply label to PR if docs modified"
       if: ${{ steps.check_submodules.outputs.docs_modified == 'true' && github.event_name == 'pull_request' }}
