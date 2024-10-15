@@ -76,15 +76,17 @@ jobs:
           fi
           cp -R docs/build/html/* ${{ github.workspace }}/root-artifacts/
 
-      - name: Upload Merged Docs Artifacts
-        uses: actions/upload-page-artifact@v3
+      - name: List artifacts (for debugging) 🧐
+        run: ls -R $GITHUB_WORKSPACE/root-artifacts/
+
+      - name: Upload all artifacts
+        uses: actions/upload-pages-artifact@v3
         with:
           name: combined-github-pages-${{ github.run_number }}
           path: root-artifacts
-#          overwrite: true
 
       - name: Deploy to GitHub Pages 📂
-        uses: actions/deploy-pages@v3
+        uses: actions/deploy-pages@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           artifact_name: combined-github-pages-${{ github.run_number }}
