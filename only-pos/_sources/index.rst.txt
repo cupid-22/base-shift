@@ -1,0 +1,92 @@
+==========================
+Vyapar Vaani Documentation
+==========================
+
+Welcome to the Vyapar Vaani documentation. This guide provides comprehensive information about the features and capabilities of our business companion Point of Sale system.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   feature-space
+   salient-features
+
+Introduction
+============
+
+Vyapar Vaani is a robust and intuitive Point of Sale system designed to be the ultimate business companion. With a focus on efficient operations, smart inventory management, and seamless multi-channel sales, Vyapar Vaani offers solutions for businesses of all sizes, from small cart vendors to large restaurant chains and retail stores.
+
+Key Features
+============
+
+- Efficient Sales Processing
+- Smart Inventory Management
+- Seamless Multi-Channel Integration
+- Offline Mode with Sync Capability
+- Real-Time Reporting and Analytics
+- User-Friendly Interface
+- Multi-Location Management
+- Customizable Loyalty Programs
+- Tax Calculation and Reporting
+- Employee Management and Scheduling
+- Menu and Product Management
+- Scalable Architecture
+
+For detailed information on each feature, please refer to the :doc:`feature-space` section.
+
+Why Choose Vyapar Vaani?
+========================
+
+1. **Business Companion**: Vyapar Vaani is designed to grow with your business, offering scalable solutions from day one.
+2. **Efficiency First**: Streamlined processes ensure fast transactions and smooth operations, crucial for high-volume businesses.
+3. **Adaptability**: Whether you're a street food vendor or a multi-location restaurant chain, Vyapar Vaani adapts to your needs.
+4. **Always Available**: With offline mode, your business never stops, even without internet connectivity.
+5. **Insightful Analytics**: Make informed decisions with real-time data and comprehensive reports.
+
+Getting Started
+===============
+
+To get started with Vyapar Vaani, follow these steps:
+
+1. **Request a Demo**: Contact our sales team for a personalized demonstration.
+2. **System Setup**: Our team will guide you through the initial setup process.
+3. **Training**: We offer comprehensive training for you and your staff.
+4. **Go Live**: Launch Vyapar Vaani in your business with our support team on standby.
+
+For a more detailed guide, please refer to our :doc:`quick-start-guide`.
+
+System Requirements
+===================
+
+- **Hardware**: Compatible with standard POS hardware, including touchscreen devices, receipt printers, and cash drawers.
+- **Operating System**: Windows 10+, macOS 10.14+, or Ubuntu 18.04+
+- **Internet**: Broadband internet connection (for cloud features and syncing)
+- **Browser**: Latest versions of Chrome, Firefox, or Safari (for web-based features)
+
+Support and Community
+=====================
+
+- **Technical Support**: Available 24/7 at support@vyaparvaani.com
+- **User Community**: Join our forum at community.vyaparvaani.com
+- **Knowledge Base**: Access tutorials and FAQs at help.vyaparvaani.com
+- **Regular Updates**: We continuously improve Vyapar Vaani based on user feedback and industry trends
+
+For Developers
+==============
+
+Vyapar Vaani offers a robust API for custom integrations and extensions. Visit our Developer Portal at dev.vyaparvaani.com for API documentation, SDKs, and developer guides.
+
+Legal and Compliance
+====================
+
+Vyapar Vaani is designed to help businesses comply with local tax laws and regulations. However, users are responsible for ensuring their use of the system meets all applicable legal requirements.
+
+- **Data Protection**: GDPR compliant
+- **Payment Processing**: PCI DSS compliant
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

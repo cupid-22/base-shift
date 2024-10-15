@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Build and Deploy Sphinx Docs &#8212; Base Shift 0.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <script src="../_static/documentation_options.js?v=7026087e"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Pull Request Size Labeling Workflow" href="pr_size_label.html" />
+    <link rel="prev" title="System Architecture" href="../system_architecture.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="build-and-deploy-sphinx-docs">
+<h1>Build and Deploy Sphinx Docs<a class="headerlink" href="#build-and-deploy-sphinx-docs" title="Link to this heading">¶</a></h1>
+<p>This document explains the GitHub Actions workflow for building and deploying Sphinx documentation, including steps to work with it, how to run the workflow, and how to debug issues.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>The workflow automates the process of building and deploying Sphinx documentation to GitHub Pages. It does the following:</p>
+<ol class="arabic simple">
+<li><p><strong>Checks out the repository</strong>: Retrieves the latest code from the repository.</p></li>
+<li><p><strong>Sets up Python</strong>: Configures the Python environment needed for Sphinx.</p></li>
+<li><p><strong>Installs Poetry</strong>: Manages Python dependencies using Poetry.</p></li>
+<li><p><strong>Installs documentation dependencies</strong>: Uses Poetry to install the necessary packages for building the documentation.</p></li>
+<li><p><strong>Builds the root Sphinx documentation</strong>: Compiles the Sphinx documentation located in the root <cite>docs</cite> directory.</p></li>
+<li><p><strong>Finds and builds documentation in subdirectories</strong>: Locates all <cite>docs</cite> directories under <cite>applications</cite>, builds the documentation for each, and copies the results.</p></li>
+<li><p><strong>Lists artifacts</strong>: Provides a debug output of the built documentation.</p></li>
+<li><p><strong>Uploads artifacts</strong>: Uploads the built documentation to GitHub as artifacts.</p></li>
+<li><p><strong>Deploys to GitHub Pages</strong>: Publishes the documentation to GitHub Pages.</p></li>
+<li><p><strong>Notifies success or failure</strong>: Alerts if the build and deployment were successful or failed.</p></li>
+</ol>
+</section>
+<section id="details">
+<h2>Details<a class="headerlink" href="#details" title="Link to this heading">¶</a></h2>
+<p>### 1. Checkout the Repository</p>
+<p>This step uses <cite>actions/checkout&#64;v3</cite> to clone the repository so that the workflow can access the files and directories within it.</p>
+<p>### 2. Set Up Python</p>
+<p>The <cite>actions/setup-python&#64;v4</cite> action sets up the required Python version (3.x) for running the build commands.</p>
+<p>### 3. Install Poetry</p>
+<p>Poetry is installed to manage Python dependencies. This is done using pip:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
+pip<span class="w"> </span>install<span class="w"> </span>poetry
+</pre></div>
+</div>
+<p># 4. Install Documentation Dependencies</p>
+<p>Dependencies specific to documentation are installed using Poetry:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">install</span> <span class="pre">--only</span> <span class="pre">docs</span> <span class="pre">--no-root</span></code></p>
+</div></blockquote>
+<p>### 5. Build Root Sphinx Documentation</p>
+<p>The root Sphinx documentation is built by running <cite>make html</cite> in the <cite>docs</cite> directory. This ensures that the root documentation is properly compiled.</p>
+<p>### 6. List and Build Docs Directories</p>
+<p>This step uses a shell script to:</p>
+<ul class="simple">
+<li><p>Find all directories with a <cite>docs</cite> folder.</p></li>
+<li><p>Build the Sphinx documentation in each directory.</p></li>
+<li><p>Copy the built HTML files to a temporary artifacts directory.</p></li>
+</ul>
+<p>Shell Commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span>dir<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="k">$(</span>find<span class="w"> </span>applications<span class="w"> </span>-type<span class="w"> </span>d<span class="w"> </span>-name<span class="w"> </span><span class="s1">&#39;docs&#39;</span><span class="w"> </span>-printf<span class="w"> </span><span class="s1">&#39;%h\n&#39;</span><span class="k">)</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">  </span><span class="nv">app_name</span><span class="o">=</span><span class="k">$(</span>basename<span class="w"> </span><span class="nv">$dir</span><span class="k">)</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Processing </span><span class="nv">$app_name</span><span class="s2"> in </span><span class="nv">$dir</span><span class="s2">&quot;</span>
+
+<span class="w">  </span><span class="c1"># Change to the directory containing the &#39;docs&#39; folder</span>
+<span class="w">  </span><span class="o">(</span><span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$dir</span><span class="s2">/docs&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>html<span class="o">)</span>
+
+<span class="w">  </span><span class="c1"># Check if the Sphinx build was successful by verifying the presence of index.html</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$dir</span><span class="s2">/docs/build/html/index.html&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;index.html found in </span><span class="nv">$dir</span><span class="s2">&quot;</span>
+<span class="w">  </span><span class="k">else</span>
+<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Error: index.html not found in </span><span class="nv">$dir</span><span class="s2">&quot;</span>
+<span class="w">    </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+<span class="w">  </span><span class="k">fi</span>
+
+<span class="w">  </span><span class="c1"># Create a directory in the artifacts folder named after the application</span>
+<span class="w">  </span>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="nv">$GITHUB_WORKSPACE</span>/artifacts/<span class="nv">$app_name</span>
+
+<span class="w">  </span><span class="c1"># Copy the built HTML documentation to the artifacts folder</span>
+<span class="w">  </span>cp<span class="w"> </span>-r<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$dir</span><span class="s2">/docs/build/html/&quot;</span>*<span class="w"> </span><span class="nv">$GITHUB_WORKSPACE</span>/artifacts/<span class="nv">$app_name</span>/
+<span class="k">done</span>
+</pre></div>
+</div>
+<p>### 7. List Artifacts</p>
+<p>The <cite>ls -R artifacts/</cite> command is used to list the contents of the artifacts directory for debugging purposes.</p>
+<p>### 8. Upload All Artifacts</p>
+<p>The <cite>actions/upload-pages-artifact&#64;v3</cite> action uploads the contents of the <cite>artifacts</cite> directory so that it can be used for deployment.</p>
+<p>### 9. Deploy to GitHub Pages</p>
+<p>The <cite>actions/deploy-pages&#64;v4</cite> action publishes the uploaded artifacts to GitHub Pages using the repository’s GitHub token.</p>
+<p>### 10. Notify Success or Failure</p>
+<p>After deployment, a notification is printed to indicate whether the build and deployment were successful or failed.</p>
+</section>
+<section id="running-the-workflow">
+<h2>Running the Workflow<a class="headerlink" href="#running-the-workflow" title="Link to this heading">¶</a></h2>
+<p>The workflow is triggered automatically on <cite>push</cite> and <cite>pull_request</cite> events to the <cite>main</cite> branch, or manually via <cite>workflow_dispatch</cite>.</p>
+<p>To run the workflow manually:</p>
+<ol class="arabic simple">
+<li><p>Go to the Actions tab in your GitHub repository.</p></li>
+<li><p>Select the “Build and Deploy Application Sphinx Docs” workflow.</p></li>
+<li><p>Click on “Run workflow”.</p></li>
+</ol>
+</section>
+<section id="debugging">
+<h2>Debugging<a class="headerlink" href="#debugging" title="Link to this heading">¶</a></h2>
+<p>To debug issues with the workflow:</p>
+<ol class="arabic simple">
+<li><p><strong>Check Logs</strong>: Review the logs for each step in the GitHub Actions interface. They provide details about the execution of commands and any errors encountered.</p></li>
+<li><p><strong>List Artifacts</strong>: Use the debug step that lists the artifacts (<cite>List artifacts (for debugging) 🧐</cite>) to ensure that all expected files are present.</p></li>
+<li><p><strong>Verify Index File</strong>: Ensure that <cite>index.html</cite> is present in the <cite>docs/build/html</cite> directory after the build step. If it’s missing, check for build errors in the Sphinx build process.</p></li>
+<li><p><strong>Re-run Workflow</strong>: Make changes to the workflow or documentation, and re-run the workflow to test fixes.</p></li>
+</ol>
+</section>
+<section id="additional-resources">
+<h2>Additional Resources<a class="headerlink" href="#additional-resources" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.github.com/en/actions">GitHub Actions Documentation</a></p></li>
+<li><p><a class="reference external" href="https://www.sphinx-doc.org/en/master/">Sphinx Documentation</a></p></li>
+<li><p><a class="reference external" href="https://python-poetry.org/docs/">Poetry Documentation</a></p></li>
+</ul>
+<p>By following these instructions, you can understand, run, and troubleshoot the GitHub Actions workflow for building and deploying Sphinx documentation.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Base Shift</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../system_architecture.html">System Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functional_flow.html">Functional Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../industry_needs_target.html">Industry Needs and Target Market</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../setup_tools.html">Setup Tools and Environment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contribution_guide.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../versioning.html">Versioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../components.html">System Architecture Breakdown</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../additional_information.html">Additional Information</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../system_architecture.html">System Architecture</a><ul>
+      <li>Previous: <a href="../system_architecture.html" title="previous chapter">System Architecture</a></li>
+      <li>Next: <a href="pr_size_label.html" title="next chapter">Pull Request Size Labeling Workflow</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Gaurav Mishra.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/workflows/deploy_application_docs.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

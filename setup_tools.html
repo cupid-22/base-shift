@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Setup Tools and Environment &#8212; Base Shift 0.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=7026087e"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Contribution Guide" href="contribution_guide.html" />
+    <link rel="prev" title="Industry Needs and Target Market" href="industry_needs_target.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="setup-tools-and-environment">
+<h1>Setup Tools and Environment<a class="headerlink" href="#setup-tools-and-environment" title="Link to this heading">¶</a></h1>
+<p>This section provides a detailed guide on setting up the development environment, necessary tools, and configurations required for the system.</p>
+<p><strong>Development Environment:</strong></p>
+<ol class="arabic">
+<li><p><strong>Operating System:</strong>
+- Recommended: Ubuntu 20.04 LTS or later, macOS Big Sur or later, Windows 10.
+- Ensure the system has at least 16GB of RAM and 100GB of free disk space.</p></li>
+<li><p><strong>Version Control:</strong>
+- Git: Use the latest stable version.
+- Repository setup: Clone the repository using <cite>git clone &lt;repo_url&gt;</cite>.</p></li>
+<li><p><strong>Programming Languages:</strong>
+- <strong>Frontend:</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>React.js (v18+)</p></li>
+<li><p>Node.js (v16+)</p></li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><p><strong>Backend:</strong>
+- Python (v3.9+)
+- Node.js (v16+)</p></li>
+<li><p><strong>Database:</strong>
+- PostgreSQL (v13+)
+- MongoDB (v4.4+)</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Tooling:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Package Managers:</strong>
+- <strong>npm:</strong> For managing Node.js packages.
+- <strong>pip:</strong> For managing Python packages.
+- <strong>Docker:</strong> For containerization and managing services.</p></li>
+<li><p><strong>Integrated Development Environment (IDE):</strong>
+- Recommended: Visual Studio Code with extensions for Python, JavaScript, and Docker.
+- Alternative: PyCharm, IntelliJ IDEA for backend; WebStorm for frontend.</p></li>
+<li><p><strong>Testing Frameworks:</strong>
+- <strong>Frontend:</strong> Jest, React Testing Library.
+- <strong>Backend:</strong> PyTest (Python), Mocha/Chai (Node.js).
+- <strong>CI/CD Integration:</strong> GitHub Actions, Jenkins.</p></li>
+<li><p><strong>Containerization and Orchestration:</strong>
+- <strong>Docker:</strong> For local development and testing.
+- <strong>Kubernetes:</strong> For deployment in staging and production environments.</p></li>
+</ol>
+<p><strong>Configuration and Secrets Management:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Environment Variables:</strong>
+- Use <cite>.env</cite> files for local development.
+- Store sensitive data like API keys, database credentials in <cite>.env</cite> files.
+- Use tools like <cite>dotenv</cite> to manage environment variables in different environments.</p></li>
+<li><p><strong>Secrets Management:</strong>
+- Use Vault by HashiCorp or AWS Secrets Manager for managing secrets in production.</p></li>
+</ol>
+<p><strong>Setting Up the Project:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Frontend:</strong>
+- Install dependencies: <cite>npm install</cite>
+- Run development server: <cite>npm start</cite>
+- Build for production: <cite>npm run build</cite></p></li>
+<li><p><strong>Backend:</strong>
+- Create a virtual environment: <cite>python -m venv env</cite>
+- Activate the virtual environment: <cite>source env/bin/activate</cite> (Linux/macOS) or <cite>envScriptsactivate</cite> (Windows)
+- Install dependencies: <cite>pip install -r requirements.txt</cite>
+- Run the development server: <cite>python manage.py runserver</cite></p></li>
+<li><p><strong>Database:</strong>
+- Initialize PostgreSQL: <cite>initdb /usr/local/var/postgres</cite>
+- Start PostgreSQL: <cite>pg_ctl -D /usr/local/var/postgres start</cite>
+- Connect to MongoDB: <cite>mongo –host localhost:27017</cite></p></li>
+<li><p><strong>Docker:</strong>
+- Build Docker images: <cite>docker-compose build</cite>
+- Start services: <cite>docker-compose up</cite>
+- Stop services: <cite>docker-compose down</cite></p></li>
+</ol>
+<p><strong>Deployment:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Staging Environment:</strong>
+- Setup CI/CD pipelines in GitHub Actions or Jenkins.
+- Deploy using Docker and Kubernetes.
+- Monitor logs and performance metrics using Prometheus and Grafana.</p></li>
+<li><p><strong>Production Environment:</strong>
+- Use Terraform for infrastructure as code.
+- Deploy via Kubernetes with Helm charts.
+- Ensure proper load balancing and auto-scaling using tools like NGINX and AWS Auto Scaling Groups.</p></li>
+</ol>
+<p><strong>Troubleshooting:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Common Issues:</strong>
+- Missing dependencies: Ensure all packages are installed correctly.
+- Database connection errors: Check environment variables and database status.
+- Docker issues: Ensure Docker is running and the correct images are built.</p></li>
+<li><p><strong>Logs and Debugging:</strong>
+- Use <cite>console.log</cite> in JavaScript and <cite>print</cite> statements in Python for local debugging.
+- Leverage IDE debugging tools for breakpoints and step-through debugging.
+- Monitor logs in Docker containers using <cite>docker logs &lt;container_name&gt;</cite>.</p></li>
+</ol>
+<p><strong>References:</strong></p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://reactjs.org/docs/getting-started.html">React Documentation</a></p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/">Python Documentation</a></p></li>
+<li><p><a class="reference external" href="https://docs.docker.com/">Docker Documentation</a></p></li>
+</ul>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Base Shift</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="system_architecture.html">System Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functional_flow.html">Functional Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="industry_needs_target.html">Industry Needs and Target Market</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Setup Tools and Environment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contribution_guide.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="versioning.html">Versioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="components.html">System Architecture Breakdown</a></li>
+<li class="toctree-l1"><a class="reference internal" href="additional_information.html">Additional Information</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="industry_needs_target.html" title="previous chapter">Industry Needs and Target Market</a></li>
+      <li>Next: <a href="contribution_guide.html" title="next chapter">Contribution Guide</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Gaurav Mishra.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/setup_tools.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

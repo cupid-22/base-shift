@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Data Flow and User Journey Overview &#8212; Only Menu 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Challenges &amp; Caveats" href="caveats.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="data-flow-and-user-journey-overview">
+<h1>Data Flow and User Journey Overview<a class="headerlink" href="#data-flow-and-user-journey-overview" title="Link to this heading">¶</a></h1>
+<p>This section provides a detailed explanation of the data flow within the Only Menu system, including the user journey, system boundaries, and how different components interact. This documentation is organized into clear sections to facilitate understanding.</p>
+<a class="reference internal image-reference" href="_images/colorful_data_flow_compnent.png"><img alt="Data Flow Diagram" class="align-center" src="_images/colorful_data_flow_compnent.png" style="width: 80%;" />
+</a>
+</section>
+<section id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h1>
+<p>The Only Menu system is designed to crowdsource restaurant menu data by allowing users to upload images of menus, which are then processed by an AI model. This system prioritizes simplicity, user engagement, and efficient data processing to ensure a seamless experience for both users and administrators.</p>
+<section id="user-journey">
+<h2>User Journey<a class="headerlink" href="#user-journey" title="Link to this heading">¶</a></h2>
+<ol class="arabic">
+<li><p><strong>Visit &amp; Discover</strong></p>
+<p>A user visits a restaurant and discovers the Only Menu application, which can be accessed via a Progressive Web App (PWA). The app’s intuitive interface prompts the user to upload a picture of the restaurant’s menu.</p>
+</li>
+<li><p><strong>Image Upload</strong></p>
+<p>The user clicks on the image upload button and selects or takes a picture of the menu using their mobile device. The image is immediately uploaded to the Only Menu backend for processing.</p>
+</li>
+<li><p><strong>AI Processing</strong></p>
+<p>The uploaded image is received by the backend API, which forwards it to the AI processing pipeline. This pipeline includes Optical Character Recognition (OCR) and Natural Language Processing (NLP) models to extract relevant information from the menu image.</p>
+</li>
+<li><p><strong>Data Extraction &amp; Ranking</strong></p>
+<p>The AI model extracts text from the menu image, categorizes the data, and ranks the upload based on the quality and quantity of information extracted. This ranking determines the number of points the user will earn.</p>
+</li>
+<li><p><strong>User Reward</strong></p>
+<p>The system calculates the user’s reward based on the AI ranking and updates their points balance. Users are notified of their reward through the app, where they can also track their total points and redeem them for rewards.</p>
+</li>
+<li><p><strong>Data Storage</strong></p>
+<p>The processed data is stored in a relational database, ensuring it is available for future searches, updates, or analysis. This data contributes to refining the AI model over time.</p>
+</li>
+</ol>
+</section>
+<section id="system-boundaries">
+<h2>System Boundaries<a class="headerlink" href="#system-boundaries" title="Link to this heading">¶</a></h2>
+<p>The system is divided into three main areas:</p>
+<ol class="arabic simple">
+<li><p><strong>Frontend (User-Facing)</strong></p>
+<ul class="simple">
+<li><p><strong>User Interface (PWA)</strong>: The user-facing component that handles all interactions with the user, from image uploads to reward notifications.</p></li>
+<li><p><strong>Image Upload Component</strong>: A crucial part of the frontend that facilitates the seamless upload of menu images.</p></li>
+</ul>
+</li>
+<li><p><strong>Backend (Core Processing)</strong></p>
+<ul class="simple">
+<li><p><strong>Backend API</strong>: Acts as the intermediary between the frontend and the core processing logic. Handles incoming requests, image processing, and interaction with the database.</p></li>
+<li><p><strong>Image Processing (OCR &amp; NLP)</strong>: Processes the uploaded images to extract and categorize menu data.</p></li>
+<li><p><strong>AI Model Training</strong>: Continuously improves the AI model using new data, enabling better extraction and ranking over time.</p></li>
+</ul>
+</li>
+<li><p><strong>External Services &amp; Tools</strong></p>
+<ul class="simple">
+<li><p><strong>Data Storage</strong>: Utilizes PostgreSQL for relational data management and Elasticsearch for fast search capabilities.</p></li>
+<li><p><strong>Notification &amp; Reward System</strong>: Manages notifications and rewards, possibly integrating with third-party services for enhanced functionality.</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="detailed-component-interaction">
+<h2>Detailed Component Interaction<a class="headerlink" href="#detailed-component-interaction" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p><strong>Frontend to Backend Communication</strong></p>
+<ul class="simple">
+<li><p><strong>PWA to Backend API</strong>: When the user uploads an image, the PWA sends the image file to the Backend API. This interaction is facilitated by RESTful API calls, ensuring a smooth data exchange.</p></li>
+</ul>
+</li>
+<li><p><strong>Backend Processing</strong></p>
+<ul class="simple">
+<li><p><strong>API to Image Processing</strong>: The Backend API sends the image to the AI processing pipeline, where OCR and NLP models extract the necessary information.</p></li>
+<li><p><strong>Image Processing to AI Model</strong>: The AI model ranks the image based on the extracted data. This ranking is used to determine the user’s reward.</p></li>
+</ul>
+</li>
+<li><p><strong>Data Storage &amp; User Notification</strong></p>
+<ul class="simple">
+<li><p><strong>AI Model to Data Storage</strong>: Extracted and ranked data is stored in a relational database. The database is structured to allow fast retrieval and updating of menu data.</p></li>
+<li><p><strong>Backend to Notification System</strong>: Once the data is processed and stored, the backend triggers the notification system, informing the user of their points and available rewards.</p></li>
+</ul>
+</li>
+</ol>
+<p>For further details on the individual components, please refer to the <a class="reference internal" href="components.html"><span class="doc">System Components</span></a> section. To understand the technologies and tools used, see the <a class="reference internal" href="oss_third_party.html"><span class="doc">Open-Source &amp; Third-Party Tools</span></a> section.</p>
+</section>
+<section id="caveats-and-considerations">
+<h2>Caveats and Considerations<a class="headerlink" href="#caveats-and-considerations" title="Link to this heading">¶</a></h2>
+<p>While the system is designed for efficiency and user engagement, there are several challenges that developers must be aware of. These include the accuracy of AI models, user retention strategies, and scalability concerns. For a deeper dive into these issues, refer to the <a class="reference internal" href="caveats.html"><span class="doc">Challenges &amp; Caveats</span></a> section.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Only Menu</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">System Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="components.html">System Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="oss_third_party.html">Open-Source &amp; Third-Party Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="caveats.html">Challenges &amp; Caveats</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data Flow and User Journey Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#introduction">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#user-journey">User Journey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#system-boundaries">System Boundaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#detailed-component-interaction">Detailed Component Interaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#caveats-and-considerations">Caveats and Considerations</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="caveats.html" title="previous chapter">Challenges &amp; Caveats</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Gaurav Mishra.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/data_flow.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
