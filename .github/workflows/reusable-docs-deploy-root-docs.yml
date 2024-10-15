@@ -77,11 +77,11 @@ jobs:
           cp -R docs/build/html/* ${{ github.workspace }}/root-artifacts/
 
       - name: Upload Merged Docs Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-page-artifact@v3
         with:
           name: combined-github-pages-${{ github.run_number }}
           path: root-artifacts
-          overwrite: true
+#          overwrite: true
 
       - name: Deploy to GitHub Pages 📂
         uses: actions/deploy-pages@v3
