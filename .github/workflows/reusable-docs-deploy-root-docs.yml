@@ -52,6 +52,11 @@ jobs:
           submodules: recursive
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Handle Git Submodules
+        uses: ./.github/actions/handle-submodules
+        with:
+          branch: ${{ steps.set_branch.outputs.branch }}
+
       - name: Download Application Docs artifact (if any)
         uses: actions/download-artifact@v4
         continue-on-error: true
