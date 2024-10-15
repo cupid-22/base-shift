@@ -77,7 +77,7 @@ jobs:
           cp -R docs/build/html/* ${{ github.workspace }}/root-artifacts/
 
       - name: Upload Merged Docs Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: combined-github-pages-${{ github.run_number }}
           path: root-artifacts
