@@ -24,6 +24,7 @@ runs:
       shell: bash
 
     - name: Delete merged branch
+      shell: bash
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
