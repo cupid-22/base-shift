@@ -17,7 +17,6 @@ on:
       branch:
         type: string
         required: false
-
   workflow_dispatch:
 
 permissions:
@@ -80,13 +79,14 @@ jobs:
       - name: Upload Merged Docs Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: github-pages
+          name: merged-docs
           path: artifacts
 
       - name: Deploy to GitHub Pages 📂
         uses: actions/deploy-pages@v4
         with:
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifact_name: merged-docs
 
   notify:
     runs-on: ubuntu-latest
