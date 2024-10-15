@@ -44,18 +44,13 @@ jobs:
           fi
         shell: bash
 
-      - name: Checkout the repository with submodules
+      - name: Checkout the repository
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.set_branch.outputs.branch }}
           fetch-depth: 0
           submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Handle Git Submodules
-        uses: ./.github/actions/handle-submodules
-        with:
-          branch: ${{ steps.set_branch.outputs.branch }}
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Download Application Docs artifact (if any)
         uses: actions/download-artifact@v4
