@@ -20,18 +20,17 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
 concurrency:
-  group: "root_docs"
+  group: "pages"
   cancel-in-progress: false
 
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Set branch to checkout
         id: set_branch
@@ -49,7 +48,20 @@ jobs:
           ref: ${{ steps.set_branch.outputs.branch }}
           fetch-depth: 0
           submodules: recursive
-          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Download current gh-pages artifact
+        run: |
+          ARTIFACT_URL=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/artifacts" | \
+            jq -r '.artifacts[] | select(.name=="github-pages") | .archive_download_url' | head -n 1)
+          
+          if [ -n "$ARTIFACT_URL" ]; then
+            curl -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o current-pages.zip "$ARTIFACT_URL"
+            mkdir -p current-pages
+            unzip current-pages.zip -d current-pages
+          else
+            echo "No existing gh-pages artifact found. Starting fresh."
+          fi
 
       - name: Download Application Docs artifact (if any)
         uses: actions/download-artifact@v4
@@ -71,25 +83,28 @@ jobs:
       - name: Merge documentation
         run: |
           mkdir -p ${{ github.workspace }}/root-artifacts
+          # Copy current gh-pages content if it exists
+          if [ -d "current-pages" ]; then
+            cp -R current-pages/* ${{ github.workspace }}/root-artifacts/
+          fi
+          # Copy application docs if they exist
           if [ -d "${{ github.workspace }}/application-docs" ]; then
             cp -R ${{ github.workspace }}/application-docs/* ${{ github.workspace }}/root-artifacts/
           fi
+          # Copy newly built docs
           cp -R docs/build/html/* ${{ github.workspace }}/root-artifacts/
 
       - name: List artifacts (for debugging) 🧐
-        run: ls -R $GITHUB_WORKSPACE/root-artifacts/
+        run: ls -R ${{ github.workspace }}/root-artifacts/
 
-      - name: Upload all artifacts
+      - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          name: combined-github-pages-${{ github.run_number }}
-          path: root-artifacts
+          path: ${{ github.workspace }}/root-artifacts
 
       - name: Deploy to GitHub Pages 📂
+        id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          artifact_name: combined-github-pages-${{ github.run_number }}
 
   notify:
     runs-on: ubuntu-latest
