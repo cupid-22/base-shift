@@ -23,10 +23,12 @@ runs:
       working-directory: .github/actions/clean-up
       shell: bash
 
-    - name: "Check for large file post merge"
-      run: ./scripts/check_large_files.sh
-      working-directory: .github/actions/clean-up
-      shell: bash
+    - name: Delete merged branch
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        BRANCH_NAME=$(gh pr view ${{ inputs.pr_number }} --json headRefName --jq .headRefName)
+        git push origin --delete $BRANCH_NAME
 
 branding:
   icon: "trash"

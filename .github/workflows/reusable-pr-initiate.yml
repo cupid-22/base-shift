@@ -12,6 +12,10 @@ on:
         description: 'Pull request number'
         required: true
         type: number
+      pr_action:
+        description: 'Current state of PR'
+        required: true
+        type: string
       base_ref:
         description: 'Base branch reference'
         required: false
@@ -85,28 +89,72 @@ jobs:
           gh pr edit ${{ inputs.pr_number }} --add-label "${{ steps.determine-label.outputs.label }}"
 
   pr-assign-reviewer:
+    needs: pulse_checks
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Assign reviewer
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Add logic to assign a reviewer based on your team's rules
-          # For example, you could use a round-robin approach or based on file changes
-          REVIEWER="example-reviewer"
-          gh pr edit ${{ inputs.pr_number }} --add-reviewer "$REVIEWER"
+          PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
+          REVIEWER="cupid-22"
+          EXISTING_REVIEWERS=$(gh pr view $PR_NUMBER --json reviewRequests --jq '.reviewRequests[].login')
+          if [[ ! $EXISTING_REVIEWERS =~ $REVIEWER ]]; then
+            gh pr edit $PR_NUMBER --add-reviewer "$REVIEWER"
+          fi
 
-  pr-checks:
+  pr-description:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run PR checks
+      - name: Add PR template
+        if: needs.pulse_checks.outputs.pr_action == 'opened'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Add any additional PR checks here
-          # For example, checking commit message format, file naming conventions, etc.
-          echo "Running additional PR checks..."
+          PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
+          PR_BODY=$(cat << EOF
+          ## Change Description
+          <!-- Please provide a brief description of the changes in this PR -->
+          
+          ## Type of Change
+          <!-- Please select the appropriate options -->
+          - [ ] Bug fix
+          - [ ] New feature
+          - [ ] Breaking change
+          - [ ] Documentation update
+          
+          ## Linters and Checks
+          <!-- Please select the linters and checks that have been run -->
+          - [ ] ESLint
+          - [ ] Prettier
+          - [ ] Unit Tests
+          - [ ] Integration Tests
+          
+          ## Additional Notes
+          <!-- Any additional information that reviewers should be aware of -->
+          
+          EOF
+          )
+          gh pr edit $PR_NUMBER --body "$PR_BODY"
+
+      - name: Update CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
+          PR_DESCRIPTION=$(gh pr view $PR_NUMBER --json body --jq .body)
+          if [ ! -f CHANGELOG.md ]; then
+            echo "# Changelog" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          fi
+          echo "## PR #$PR_NUMBER" >> CHANGELOG.md
+          echo "$PR_DESCRIPTION" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add CHANGELOG.md
+          git commit -m "Update CHANGELOG.md for PR #$PR_NUMBER"
+          git push

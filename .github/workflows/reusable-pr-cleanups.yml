@@ -12,6 +12,10 @@ on:
         description: 'Pull request number'
         required: true
         type: number
+      pr_action:
+        description: 'Current state of PR'
+        required: true
+        type: string
       base_ref:
         description: 'Base branch reference'
         required: false
@@ -43,30 +47,58 @@ jobs:
           repo_path: '.'
 
   update-release-notes:
+    needs: pulse_checks
+    if: needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Update release notes
+      - name: Update CHANGELOG.md
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          # Add logic to update release notes
-          # For example, you could append the PR description to a CHANGELOG.md file
-          PR_DESCRIPTION=$(gh pr view ${{ inputs.pr_number }} --json body --jq .body)
-          echo "## PR #${{ inputs.pr_number }}" >> CHANGELOG.md
+          PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
+          PR_DESCRIPTION=$(gh pr view $PR_NUMBER --json body --jq .body)
+          if [ ! -f CHANGELOG.md ]; then
+            echo "# Changelog" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          fi
+          echo "## PR #$PR_NUMBER" >> CHANGELOG.md
           echo "$PR_DESCRIPTION" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add CHANGELOG.md
+          git commit -m "Update CHANGELOG.md for PR #$PR_NUMBER"
+          git push
 
-  cleanup-branches:
+  misc-checks:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout the repository with submodules
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Delete merged branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Handle Git Submodules
+        uses: ./.github/actions/handle-submodules
+        with:
+          branch: ${{ inputs.head_ref || github.head_ref || 'main' }}
+
+      - name: Check for large file post merge
         run: |
-          BRANCH_NAME=$(gh pr view ${{ inputs.pr_number }} --json headRefName --jq .headRefName)
-          git push origin --delete $BRANCH_NAME
+          # Set size limit (in bytes)
+          size_limit=10000000  # 10 MB
+
+          # Find large files
+          large_files=$(find . -type f -size +${size_limit}c)
+
+          if [ -n "$large_files" ]; then
+            echo "Warning: The following files are larger than the size limit (${size_limit} bytes):"
+            echo "$large_files"
+          else
+            echo "No large files found."
+          fi

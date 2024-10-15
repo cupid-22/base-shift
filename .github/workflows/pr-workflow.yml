@@ -16,6 +16,7 @@ jobs:
     outputs:
       pr_exists: ${{ steps.check_pr.outputs.exists }}
       pr_state: ${{ steps.check_pr.outputs.state }}
+      pr_action: ${{ steps.check_pr.outputs.action }}
     steps:
       - name: Check if PR exists and get state
         id: check_pr
@@ -27,43 +28,33 @@ jobs:
             echo "exists=true" >> $GITHUB_OUTPUT
             STATE=$(gh pr view $PR_NUMBER --json state --jq .state)
             echo "state=$STATE" >> $GITHUB_OUTPUT
+            echo "action=${{ github.event.action }}" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
             echo "state=unknown" >> $GITHUB_OUTPUT
+            echo "action=unknown" >> $GITHUB_OUTPUT
           fi
 
-  lint:
-    needs: pulse_checks
-    if: needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run linter
-        run: |
-          # Add your linting commands here
-          echo "Running linter..."
-
-  test:
-    needs: pulse_checks
-    if: needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run tests
-        run: |
-          # Add your test commands here
-          echo "Running tests..."
-
   opened_pr_workflows:
-    needs: [pulse_checks, lint, test]
+    needs: pulse_checks
     if: needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN'
     uses: ./.github/workflows/reusable-pr-initiate.yml
     with:
       pr_number: ${{ github.event.pull_request.number || inputs.pr_number }}
       base_ref: ${{ github.base_ref }}
       head_ref: ${{ github.head_ref }}
+      pr_action: ${{ needs.pulse_checks.outputs.pr_action }}
     secrets: inherit
-
+  ongoing_pr_workflows:
+    needs: pulse_checks
+    if: needs.pulse_checks.outputs.pr_exists == 'true'
+    uses: ./.github/workflows/reusable-pr-ongoing.yml
+    with:
+      pr_number: ${{ github.event.pull_request.number || inputs.pr_number }}
+      base_ref: ${{ github.base_ref }}
+      head_ref: ${{ github.head_ref }}
+      pr_action: ${{ needs.pulse_checks.outputs.pr_action }}
+    secrets: inherit
   closed_pr_workflows:
     needs: pulse_checks
     if: needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'CLOSED' && github.event.pull_request.merged == true
@@ -72,18 +63,22 @@ jobs:
       pr_number: ${{ github.event.pull_request.number || inputs.pr_number }}
       base_ref: ${{ github.base_ref }}
       head_ref: ${{ github.head_ref }}
+      pr_action: ${{ needs.pulse_checks.outputs.pr_action }}
     secrets: inherit
-
   notify:
-    needs: [opened_pr_workflows, closed_pr_workflows]
+    needs: [pulse_checks, opened_pr_workflows, lint, test, closed_pr_workflows]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Notify result
         run: |
-          if [ "${{ needs.opened_pr_workflows.result }}" == "success" ] || [ "${{ needs.closed_pr_workflows.result }}" == "success" ]; then
+          if [ "${{ needs.pulse_checks.result }}" == "success" ] && \
+             ([ "${{ needs.opened_pr_workflows.result }}" == "success" ] || [ "${{ needs.opened_pr_workflows.result }}" == "skipped" ]) && \
+             ([ "${{ needs.lint.result }}" == "success" ] || [ "${{ needs.lint.result }}" == "skipped" ]) && \
+             ([ "${{ needs.test.result }}" == "success" ] || [ "${{ needs.test.result }}" == "skipped" ]) && \
+             ([ "${{ needs.closed_pr_workflows.result }}" == "success" ] || [ "${{ needs.closed_pr_workflows.result }}" == "skipped" ]); then
             echo "PR workflow completed successfully"
           else
-            echo "PR workflow failed or skipped"
+            echo "PR workflow failed or some jobs were skipped"
           fi
         # Add actual notification logic here (e.g., sending to Slack, email, etc.)

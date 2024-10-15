@@ -1,0 +1,54 @@
+name: 🧹 Post PR Clean-ups
+
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - '.github/workflows/reusable-pr-cleanups.yml'
+  workflow_call:
+    inputs:
+      pr_number:
+        description: 'Pull request number'
+        required: true
+        type: number
+      pr_action:
+        description: 'Current state of PR'
+        required: true
+        type: string
+      base_ref:
+        description: 'Base branch reference'
+        required: false
+        type: string
+      head_ref:
+        description: 'Head branch reference'
+        required: false
+        type: string
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        run: | 
+          echo "Run code level linters here ..."
+      - name: Run branch linter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
+          BRANCH_NAME=$(gh pr view $PR_NUMBER --json headRefName --jq .headRefName)
+          VALID_PREFIX="^(docs|feature|bug|story|chore|refactor|test)/"
+          if [[ ! $BRANCH_NAME =~ $VALID_PREFIX ]]; then
+            COMMENT="Branch name '$BRANCH_NAME' does not follow the standard format. Please use one of the following prefixes: docs/, feature/, bug/, story/, chore/, refactor/, or test/"
+            gh pr comment $PR_NUMBER --body "$COMMENT"
+          fi
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: |
+          # Add your test commands here
+          echo "Running tests..."
