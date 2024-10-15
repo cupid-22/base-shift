@@ -70,17 +70,17 @@ jobs:
 
       - name: Merge documentation
         run: |
-          mkdir -p ${{ github.workspace }}/artifacts
+          mkdir -p ${{ github.workspace }}/root-artifacts
           if [ -d "${{ github.workspace }}/application-docs" ]; then
-            cp -R ${{ github.workspace }}/application-docs/* ${{ github.workspace }}/artifacts/
+            cp -R ${{ github.workspace }}/application-docs/* ${{ github.workspace }}/root-artifacts/
           fi
-          cp -R docs/build/html/* ${{ github.workspace }}/artifacts/
+          cp -R docs/build/html/* ${{ github.workspace }}/root-artifacts/
 
       - name: Upload Merged Docs Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: combined-github-pages-${{ github.run_number }}
-          path: artifacts
+          path: root-artifacts
           overwrite: true
 
       - name: Deploy to GitHub Pages 📂
