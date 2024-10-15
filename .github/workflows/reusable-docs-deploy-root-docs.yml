@@ -77,15 +77,11 @@ jobs:
           fi
           cp -R docs/build/html/* ${{ github.workspace }}/artifacts/
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Upload Application Docs Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ${{ github.workspace }}/artifacts
-          force_orphan: true
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
-          commit_message: 'Deploy to GitHub Pages'
+          name: all-docs
+          path: artifacts
 
   notify:
     runs-on: ubuntu-latest
