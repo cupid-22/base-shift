@@ -18,12 +18,12 @@ on:
         default: 'false'
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
 concurrency:
-  group: "docs"
+  group: "application_docs"
   cancel-in-progress: false
 
 jobs:
@@ -121,15 +121,12 @@ jobs:
       - name: List Artifacts (for Debugging) 🧐
         run: ls -R artifacts/
 
-      - name: Upload All Artifacts
-        uses: actions/upload-pages-artifact@v3
+      - name: Upload Application Docs Artifacts
+        uses: actions/upload-artifact@v3
         with:
+          name: application-docs
           path: artifacts
-
-      - name: Deploy to GitHub Pages 📂
-        uses: actions/deploy-pages@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          retention-days: 1
 
   notify:
     needs: build_and_deploy
