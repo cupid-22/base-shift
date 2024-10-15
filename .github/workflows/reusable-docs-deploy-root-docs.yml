@@ -53,7 +53,7 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
 
       - name: Download Application Docs artifact (if any)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         continue-on-error: true
         with:
           name: application-docs
@@ -71,17 +71,17 @@ jobs:
 
       - name: Merge documentation
         run: |
-          mkdir -p ${{ github.workspace }}/merged-artifacts
+          mkdir -p ${{ github.workspace }}/artifacts
           if [ -d "${{ github.workspace }}/application-docs" ]; then
-            cp -R ${{ github.workspace }}/application-docs/* ${{ github.workspace }}/merged-artifacts/
+            cp -R ${{ github.workspace }}/application-docs/* ${{ github.workspace }}/artifacts/
           fi
-          cp -R docs/build/html/* ${{ github.workspace }}/merged-artifacts/
+          cp -R docs/build/html/* ${{ github.workspace }}/artifacts/
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ${{ github.workspace }}/merged-artifacts
+          publish_dir: ${{ github.workspace }}/artifacts
           force_orphan: true
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
