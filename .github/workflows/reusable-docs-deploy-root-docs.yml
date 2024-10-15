@@ -50,7 +50,7 @@ jobs:
           ref: ${{ steps.set_branch.outputs.branch }}
           fetch-depth: 0
           submodules: recursive
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download Application Docs artifact (if any)
         uses: actions/download-artifact@v4
