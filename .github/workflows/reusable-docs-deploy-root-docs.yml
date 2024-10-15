@@ -81,6 +81,7 @@ jobs:
         with:
           name: combined-github-pages-${{ github.run_number }}
           path: artifacts
+          overwrite: true
 
       - name: Deploy to GitHub Pages 📂
         uses: actions/deploy-pages@v4
