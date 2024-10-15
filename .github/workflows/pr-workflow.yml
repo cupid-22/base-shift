@@ -1,0 +1,52 @@
+name: 💾 PR Workflow
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Pull request number'
+        required: true
+        type: number
+
+jobs:
+  pulse_checks:
+    runs-on: ubuntu-latest
+    outputs:
+      pr_exists: ${{ steps.check_pr.outputs.exists }}
+    steps:
+      - name: Check if PR exists
+        id: check_pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -n "${{ github.event.pull_request.number || inputs.pr_number }}" ]; then
+            if gh pr view ${{ github.event.pull_request.number || inputs.pr_number }} &> /dev/null; then
+              echo "exists=true" >> $GITHUB_OUTPUT
+            else
+              echo "exists=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "exists=true" >> $GITHUB_OUTPUT
+          fi
+
+  opened_pr_workflows:
+    needs: [pulse_checks]
+    if: needs.pulse_checks.outputs.pr_exists == 'true' && github.event.action != 'closed'
+    uses: ./.github/workflows/reusable-pr-initiate.yml
+    with:
+      pr_number: ${{ github.event.pull_request.number || inputs.pr_number }}
+      base_ref: ${{ github.base_ref }}
+      head_ref: ${{ github.head_ref }}
+    secrets: inherit
+
+  closed_pr_workflows:
+    needs: [pulse_checks]
+    if: needs.pulse_checks.outputs.pr_exists == 'true' && github.event.pull_request.merged == true
+    uses: ./.github/workflows/reusable-pr-cleanups.yml
+    with:
+      pr_number: ${{ github.event.pull_request.number || inputs.pr_number }}
+      base_ref: ${{ github.base_ref }}
+      head_ref: ${{ github.head_ref }}
+    secrets: inherit

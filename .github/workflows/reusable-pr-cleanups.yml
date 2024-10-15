@@ -1,0 +1,43 @@
+name: 🧹 Post PR Clean-ups
+
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - '.github/workflows/reusable-pr-cleanups.yml'
+  workflow_call:
+    inputs:
+      pr_number:
+        description: 'Pull request number'
+        required: true
+        type: number
+      base_ref:
+        description: 'Base branch reference'
+        required: false
+        type: string
+      head_ref:
+        description: 'Head branch reference'
+        required: false
+        type: string
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository with submodules
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Handle Git Submodules
+        uses: ./.github/actions/handle-submodules
+        with:
+          branch: ${{ inputs.head_ref || github.head_ref || 'main' }}
+
+      - name: Run Clean-up scripts
+        uses: ./.github/actions/clean-up
+        with:
+          repo_path: '.'

@@ -1,8 +1,25 @@
-name: "🚦 Pull Request Size Labeler"
+name: "Open Pull Request Workflow Jobs"
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - '**'
+    paths:
+      - '.github/workflows/reusable-pr-initiate.yml'
+  workflow_call:
+    inputs:
+      pr_number:
+        description: 'Pull request number'
+        required: true
+        type: number
+      base_ref:
+        description: 'Base branch reference'
+        required: false
+        type: string
+      head_ref:
+        description: 'Head branch reference'
+        required: false
+        type: string
 
 jobs:
   pr-labeler:
@@ -16,7 +33,9 @@ jobs:
       - name: Calculate lines of code
         id: diff
         run: |
-          LOC=$(git diff --shortstat origin/${{ github.base_ref }}...HEAD | awk '{print $1}')
+          BASE_REF="${{ inputs.base_ref || github.base_ref }}"
+          HEAD_REF="${{ inputs.head_ref || github.head_ref }}"
+          LOC=$(git diff --shortstat origin/${BASE_REF}...${HEAD_REF} | awk '{print $1}')
           echo "lines_of_code=${LOC:-0}" >> $GITHUB_ENV
 
       - name: Determine PR size label
@@ -47,7 +66,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          LABELS=$(gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name')
+          LABELS=$(gh pr view ${{ inputs.pr_number }} --json labels --jq '.labels[].name')
           if echo "$LABELS" | grep -q "${{ steps.determine-label.outputs.label }}"; then
             echo "label_exists=true" >> $GITHUB_OUTPUT
           else
@@ -63,4 +82,4 @@ jobs:
             --color "${{ steps.determine-label.outputs.color }}" \
             --description "PR size: ${{ steps.determine-label.outputs.label }}" \
             || true
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "${{ steps.determine-label.outputs.label }}"
+          gh pr edit ${{ inputs.pr_number }} --add-label "${{ steps.determine-label.outputs.label }}"
