@@ -77,11 +77,16 @@ jobs:
           fi
           cp -R docs/build/html/* ${{ github.workspace }}/artifacts/
 
-      - name: Upload Application Docs Artifacts
+      - name: Upload Merged Docs Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: all-docs
           path: artifacts
+
+      - name: Deploy to GitHub Pages 📂
+        uses: actions/deploy-pages@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   notify:
     runs-on: ubuntu-latest
