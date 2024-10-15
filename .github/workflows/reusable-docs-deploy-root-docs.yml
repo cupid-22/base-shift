@@ -80,7 +80,7 @@ jobs:
       - name: Upload Merged Docs Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: all-docs
+          name: github-pages
           path: artifacts
 
       - name: Deploy to GitHub Pages 📂
