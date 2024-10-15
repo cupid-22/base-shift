@@ -122,7 +122,7 @@ jobs:
         run: ls -R artifacts/
 
       - name: Upload Application Docs Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: application-docs
           path: artifacts
