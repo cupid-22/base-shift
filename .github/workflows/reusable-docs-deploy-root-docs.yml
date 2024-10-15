@@ -79,14 +79,14 @@ jobs:
       - name: Upload Merged Docs Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: combined-github-pages
+          name: combined-github-pages-${{ github.run_number }}
           path: artifacts
 
       - name: Deploy to GitHub Pages 📂
         uses: actions/deploy-pages@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifact_name: combined-github-pages
+          artifact_name: combined-github-pages-${{ github.run_number }}
 
   notify:
     runs-on: ubuntu-latest
