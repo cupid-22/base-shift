@@ -15,25 +15,48 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       pr_exists: ${{ steps.check_pr.outputs.exists }}
+      pr_state: ${{ steps.check_pr.outputs.state }}
     steps:
-      - name: Check if PR exists
+      - name: Check if PR exists and get state
         id: check_pr
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ -n "${{ github.event.pull_request.number || inputs.pr_number }}" ]; then
-            if gh pr view ${{ github.event.pull_request.number || inputs.pr_number }} &> /dev/null; then
-              echo "exists=true" >> $GITHUB_OUTPUT
-            else
-              echo "exists=false" >> $GITHUB_OUTPUT
-            fi
-          else
+          PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
+          if gh pr view $PR_NUMBER &> /dev/null; then
             echo "exists=true" >> $GITHUB_OUTPUT
+            STATE=$(gh pr view $PR_NUMBER --json state --jq .state)
+            echo "state=$STATE" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "state=unknown" >> $GITHUB_OUTPUT
           fi
 
+  lint:
+    needs: pulse_checks
+    if: needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run linter
+        run: |
+          # Add your linting commands here
+          echo "Running linter..."
+
+  test:
+    needs: pulse_checks
+    if: needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: |
+          # Add your test commands here
+          echo "Running tests..."
+
   opened_pr_workflows:
-    needs: [pulse_checks]
-    if: needs.pulse_checks.outputs.pr_exists == 'true' && github.event.action != 'closed'
+    needs: [pulse_checks, lint, test]
+    if: needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN'
     uses: ./.github/workflows/reusable-pr-initiate.yml
     with:
       pr_number: ${{ github.event.pull_request.number || inputs.pr_number }}
@@ -42,11 +65,25 @@ jobs:
     secrets: inherit
 
   closed_pr_workflows:
-    needs: [pulse_checks]
-    if: needs.pulse_checks.outputs.pr_exists == 'true' && github.event.pull_request.merged == true
+    needs: pulse_checks
+    if: needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'CLOSED' && github.event.pull_request.merged == true
     uses: ./.github/workflows/reusable-pr-cleanups.yml
     with:
       pr_number: ${{ github.event.pull_request.number || inputs.pr_number }}
       base_ref: ${{ github.base_ref }}
       head_ref: ${{ github.head_ref }}
     secrets: inherit
+
+  notify:
+    needs: [opened_pr_workflows, closed_pr_workflows]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify result
+        run: |
+          if [ "${{ needs.opened_pr_workflows.result }}" == "success" ] || [ "${{ needs.closed_pr_workflows.result }}" == "success" ]; then
+            echo "PR workflow completed successfully"
+          else
+            echo "PR workflow failed or skipped"
+          fi
+        # Add actual notification logic here (e.g., sending to Slack, email, etc.)

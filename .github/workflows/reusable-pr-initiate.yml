@@ -83,3 +83,30 @@ jobs:
             --description "PR size: ${{ steps.determine-label.outputs.label }}" \
             || true
           gh pr edit ${{ inputs.pr_number }} --add-label "${{ steps.determine-label.outputs.label }}"
+
+  pr-assign-reviewer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Assign reviewer
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Add logic to assign a reviewer based on your team's rules
+          # For example, you could use a round-robin approach or based on file changes
+          REVIEWER="example-reviewer"
+          gh pr edit ${{ inputs.pr_number }} --add-reviewer "$REVIEWER"
+
+  pr-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run PR checks
+        run: |
+          # Add any additional PR checks here
+          # For example, checking commit message format, file naming conventions, etc.
+          echo "Running additional PR checks..."

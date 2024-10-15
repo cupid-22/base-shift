@@ -22,7 +22,7 @@ on:
         type: string
 
 jobs:
-  cleanup:
+  prune-dead-branches:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository with submodules
@@ -41,3 +41,32 @@ jobs:
         uses: ./.github/actions/clean-up
         with:
           repo_path: '.'
+
+  update-release-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Update release notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Add logic to update release notes
+          # For example, you could append the PR description to a CHANGELOG.md file
+          PR_DESCRIPTION=$(gh pr view ${{ inputs.pr_number }} --json body --jq .body)
+          echo "## PR #${{ inputs.pr_number }}" >> CHANGELOG.md
+          echo "$PR_DESCRIPTION" >> CHANGELOG.md
+
+  cleanup-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Delete merged branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH_NAME=$(gh pr view ${{ inputs.pr_number }} --json headRefName --jq .headRefName)
+          git push origin --delete $BRANCH_NAME
