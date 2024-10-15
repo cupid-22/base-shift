@@ -89,7 +89,6 @@ jobs:
           gh pr edit ${{ inputs.pr_number }} --add-label "${{ steps.determine-label.outputs.label }}"
 
   pr-assign-reviewer:
-    needs: pulse_checks
     runs-on: ubuntu-latest
     steps:
       - name: Assign reviewer
@@ -110,7 +109,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Add PR template
-        if: needs.pulse_checks.outputs.pr_action == 'opened'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
