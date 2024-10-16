@@ -41,7 +41,7 @@ jobs:
         id: diff
         env:
           BASE_REF: ${{ inputs.base_ref || github.base_ref }}
-          HEAD_REF": ${{ inputs.head_ref || github.head_ref }}
+          HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
         run: |
           LOC=$(git diff --shortstat origin/${BASE_REF}...${HEAD_REF} | awk '{print $1}')
           echo "lines_of_code=${LOC:-0}" >> $GITHUB_ENV
