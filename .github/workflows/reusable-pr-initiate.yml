@@ -1,4 +1,4 @@
-name: "Open Pull Request Workflow Jobs"
+name: "🚦 Open Pull Request Workflow Jobs"
 
 on:
   push:
@@ -36,6 +36,9 @@ jobs:
       - name: Debug step
         run: |
           echo "PR Number: ${{ inputs.base_ref }}"
+          echo "pr_action: ${{ inputs.pr_action }}"
+          echo "base_ref: ${{ inputs.base_ref }}"
+          echo "head_ref: ${{ inputs.head_ref }}"
 
       - name: Calculate lines of code
         id: diff
@@ -47,6 +50,7 @@ jobs:
           echo "lines_of_code=${LOC:-0}" >> $GITHUB_ENV
 
       - name: Determine PR size label
+        if: ${{ env.lines_of_code }}
         id: determine-label
         run: |
           if [ ${{ env.lines_of_code }} -eq 0 ]; then
