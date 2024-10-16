@@ -33,12 +33,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Debug step
+        run: |
+          echo "PR Number: ${{ inputs.base_ref }}"
 
       - name: Calculate lines of code
         id: diff
+        env:
+          BASE_REF: ${{ inputs.base_ref || github.base_ref }}
+          HEAD_REF": ${{ inputs.head_ref || github.head_ref }}
         run: |
-          BASE_REF="${{ inputs.base_ref || github.base_ref }}"
-          HEAD_REF="${{ inputs.head_ref || github.head_ref }}"
           LOC=$(git diff --shortstat origin/${BASE_REF}...${HEAD_REF} | awk '{print $1}')
           echo "lines_of_code=${LOC:-0}" >> $GITHUB_ENV
 
