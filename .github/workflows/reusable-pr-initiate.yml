@@ -27,19 +27,38 @@ on:
         type: string
 
 jobs:
-  pr-labeler:
+  check_conditions:
     runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.check.outputs.pr_number }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Check conditions
+        id: check
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number || github.event.number || inputs.pr_number }}"
+          
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "No PR number found. Exiting."
+            exit 1
+          fi
+          echo "pr_number=PR_NUMBER" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Debug step
         run: |
           echo "PR Number: ${{ inputs.base_ref }}"
           echo "pr_action: ${{ inputs.pr_action }}"
           echo "base_ref: ${{ inputs.base_ref }}"
           echo "head_ref: ${{ inputs.head_ref }}"
+
+  pr-labeler:
+    runs-on: ubuntu-latest
+    needs: check_conditions
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Calculate lines of code
         id: diff
@@ -78,8 +97,9 @@ jobs:
         id: check-labels
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
         run: |
-          LABELS=$(gh pr view ${{ inputs.pr_number }} --json labels --jq '.labels[].name')
+          LABELS=$(gh pr view ${{ PR_NUMBER }} --json labels --jq '.labels[].name')
           if echo "$LABELS" | grep -q "${{ steps.determine-label.outputs.label }}"; then
             echo "label_exists=true" >> $GITHUB_OUTPUT
           else
@@ -95,9 +115,10 @@ jobs:
             --color "${{ steps.determine-label.outputs.color }}" \
             --description "PR size: ${{ steps.determine-label.outputs.label }}" \
             || true
-          gh pr edit ${{ inputs.pr_number }} --add-label "${{ steps.determine-label.outputs.label }}"
+          gh pr edit ${{ PR_NUMBER }} --add-label "${{ steps.determine-label.outputs.label }}"
 
   pr-assign-reviewer:
+    needs: check_conditions
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
@@ -111,15 +132,9 @@ jobs:
       - name: Assign reviewer
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
         run: |
           # Retrieve the pull request number, either from event or as input
-          PR_NUMBER="${{ github.event.pull_request.number || github.event.number || inputs.pr_number }}"
-          
-          if [[ -z "$PR_NUMBER" ]]; then
-            echo "No PR number found. Exiting."
-            exit 1
-          fi
-
           REVIEWER="cupid-22"
           EXISTING_REVIEWERS=$(gh pr view $PR_NUMBER --json reviewRequests --jq '.reviewRequests[].login')
 
@@ -131,6 +146,7 @@ jobs:
 
   pr-description:
     runs-on: ubuntu-latest
+    needs: check_conditions
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -138,8 +154,8 @@ jobs:
       - name: Add PR template
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
         run: |
-          PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
           PR_BODY=$(cat << EOF
           ## Change Description
           <!-- Please provide a brief description of the changes in this PR, along with the ticket link -->
@@ -168,8 +184,8 @@ jobs:
       - name: Update CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
         run: |
-          PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
           PR_DESCRIPTION=$(gh pr view $PR_NUMBER --json body --jq .body)
           if [ ! -f CHANGELOG.md ]; then
             echo "# Changelog" > CHANGELOG.md
