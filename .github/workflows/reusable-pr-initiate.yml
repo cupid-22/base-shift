@@ -1,4 +1,4 @@
-name: "🚦 Open Pull Request Workflow Jobs"
+name: 🔄 Open Pull Request Workflow Jobs
 
 on:
   workflow_dispatch:
@@ -27,19 +27,38 @@ on:
         type: string
 
 jobs:
+  check_conditions:
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.check.outputs.pr_number }}
+    steps:
+      - name: Check conditions
+        id: check
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number || github.event.number || inputs.pr_number }}"
+          
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "No PR number found. Exiting."
+            exit 1
+          fi
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Debug step
+        run: |
+          echo "PR Number: ${{ steps.check.outputs.pr_number }}"
+          echo "pr_action: ${{ inputs.pr_action }}"
+          echo "base_ref: ${{ inputs.base_ref }}"
+          echo "head_ref: ${{ inputs.head_ref }}"
+
   pr-labeler:
     runs-on: ubuntu-latest
+    needs: check_conditions
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Debug step
-        run: |
-          echo "PR Number: ${{ inputs.base_ref }}"
-          echo "pr_action: ${{ inputs.pr_action }}"
-          echo "base_ref: ${{ inputs.base_ref }}"
-          echo "head_ref: ${{ inputs.head_ref }}"
 
       - name: Calculate lines of code
         id: diff
@@ -78,8 +97,9 @@ jobs:
         id: check-labels
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
         run: |
-          LABELS=$(gh pr view ${{ inputs.pr_number }} --json labels --jq '.labels[].name')
+          LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
           if echo "$LABELS" | grep -q "${{ steps.determine-label.outputs.label }}"; then
             echo "label_exists=true" >> $GITHUB_OUTPUT
           else
@@ -90,36 +110,29 @@ jobs:
         if: steps.check-labels.outputs.label_exists == 'false'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
         run: |
           gh label create "${{ steps.determine-label.outputs.label }}" \
             --color "${{ steps.determine-label.outputs.color }}" \
             --description "PR size: ${{ steps.determine-label.outputs.label }}" \
             || true
-          gh pr edit ${{ inputs.pr_number }} --add-label "${{ steps.determine-label.outputs.label }}"
+          gh pr edit $PR_NUMBER --add-label "${{ steps.determine-label.outputs.label }}"
 
   pr-assign-reviewer:
+    needs: check_conditions
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Debug step
-        run: |
-          echo "PR Number: ${{ inputs.base_ref }}"
 
       - name: Assign reviewer
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
         run: |
           # Retrieve the pull request number, either from event or as input
-          PR_NUMBER="${{ github.event.pull_request.number || github.event.number || inputs.pr_number }}"
-          
-          if [[ -z "$PR_NUMBER" ]]; then
-            echo "No PR number found. Exiting."
-            exit 1
-          fi
-
           REVIEWER="cupid-22"
           EXISTING_REVIEWERS=$(gh pr view $PR_NUMBER --json reviewRequests --jq '.reviewRequests[].login')
 
@@ -131,6 +144,7 @@ jobs:
 
   pr-description:
     runs-on: ubuntu-latest
+    needs: check_conditions
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -138,8 +152,8 @@ jobs:
       - name: Add PR template
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
         run: |
-          PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
           PR_BODY=$(cat << EOF
           ## Change Description
           <!-- Please provide a brief description of the changes in this PR, along with the ticket link -->
@@ -165,21 +179,71 @@ jobs:
           )
           gh pr edit $PR_NUMBER --body "$PR_BODY"
 
-      - name: Update CHANGELOG.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
-          PR_DESCRIPTION=$(gh pr view $PR_NUMBER --json body --jq .body)
-          if [ ! -f CHANGELOG.md ]; then
-            echo "# Changelog" > CHANGELOG.md
-            echo "" >> CHANGELOG.md
-          fi
-          echo "## PR #$PR_NUMBER" >> CHANGELOG.md
-          echo "$PR_DESCRIPTION" >> CHANGELOG.md
+  update-changelog:
+    needs: check_conditions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Update CHANGELOG.md
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
+      run: |
+        # Ensure PR_NUMBER is set
+        if [ -z "$PR_NUMBER" ]; then
+          echo "Error: PR_NUMBER is not set. This workflow should only run on pull_request events."
+          exit 1
+        fi
+
+        # Setup git
+        git config user.name "GitHub Action"
+        git config user.email "action@github.com"
+
+        # Fetch and checkout the PR branch
+        PR_BRANCH="${{ github.head_ref }}"
+        git fetch origin $PR_BRANCH
+        git checkout $PR_BRANCH
+
+        # Get PR description
+        PR_DESCRIPTION=$(gh pr view $PR_NUMBER --json body --jq .body)
+        if [ $? -ne 0 ]; then
+          echo "Error: Failed to fetch PR description. Ensure the GITHUB_TOKEN has necessary permissions."
+          exit 1
+        fi
+
+        # Update CHANGELOG.md
+        if [ ! -f CHANGELOG.md ]; then
+          echo "# Changelog" > CHANGELOG.md
           echo "" >> CHANGELOG.md
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
-          git add CHANGELOG.md
-          git commit -m "Update CHANGELOG.md for PR #$PR_NUMBER"
-          git push
+        fi
+
+        # Prepend new entry to CHANGELOG.md
+        TEMP_FILE=$(mktemp)
+        echo "## PR #$PR_NUMBER" > $TEMP_FILE
+        echo "$PR_DESCRIPTION" >> $TEMP_FILE
+        echo "" >> $TEMP_FILE
+        echo "" >> $TEMP_FILE
+        cat CHANGELOG.md >> $TEMP_FILE
+        mv $TEMP_FILE CHANGELOG.md
+
+        # Commit changes
+        git add CHANGELOG.md
+        git commit -m "Update CHANGELOG.md for PR #$PR_NUMBER"
+
+        # Push changes to the PR branch
+        if ! git push origin $PR_BRANCH; then
+          echo "Error: Failed to push changes. Check repository permissions."
+          exit 1
+        fi
+
+        # Add a comment to the PR
+        if ! gh pr comment $PR_NUMBER --body "I've updated the CHANGELOG.md in this PR. Please review the changes."; then
+          echo "Error: Failed to add comment to PR. Check repository permissions."
+          exit 1
+        fi

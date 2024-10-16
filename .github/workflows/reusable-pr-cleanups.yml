@@ -1,4 +1,4 @@
-name: 🧹 Post PR Clean-ups
+name: 🔄 Post PR Clean-ups
 
 on:
   workflow_dispatch:
