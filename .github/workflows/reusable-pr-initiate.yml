@@ -200,8 +200,12 @@ jobs:
           git add CHANGELOG.md
           git commit -m "Update CHANGELOG.md for PR #$PR_NUMBER"
           
-          # Instead of pushing, use gh to create a new commit in the existing PR
-          git push origin HEAD:$GITHUB_HEAD_REF
+          # Fetch the PR branch
+          PR_BRANCH=$(gh pr view $PR_NUMBER --json headRefName --jq .headRefName)
+          git fetch origin $PR_BRANCH
+
+          # Push changes to the PR branch
+          git push origin HEAD:$PR_BRANCH
           
           # Update the PR with the new changes
           gh pr edit $PR_NUMBER --add-label "changelog-updated"
