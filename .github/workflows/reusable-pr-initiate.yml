@@ -179,41 +179,60 @@ jobs:
           )
           gh pr edit $PR_NUMBER --body "$PR_BODY"
 
-      - name: Update CHANGELOG.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
-        run: |
-          PR_DESCRIPTION=$(gh pr view $PR_NUMBER --json body --jq .body)
-          
-          if [ ! -f CHANGELOG.md ]; then
-            echo "# Changelog" > CHANGELOG.md
-            echo "" >> CHANGELOG.md
-          fi
-          
-          echo "## PR #$PR_NUMBER" >> CHANGELOG.md
-          echo "$PR_DESCRIPTION" >> CHANGELOG.md
+  update-changelog:
+    needs: check_conditions
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Update CHANGELOG.md
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: |
+        # Setup git
+        git config user.name "GitHub Action"
+        git config user.email "action@github.com"
+
+        # Create and checkout a new temporary branch
+        TEMP_BRANCH="temp-changelog-update-${PR_NUMBER}"
+        git checkout -b $TEMP_BRANCH
+
+        # Get PR description
+        PR_DESCRIPTION=$(gh pr view $PR_NUMBER --json body --jq .body)
+
+        # Update CHANGELOG.md
+        if [ ! -f CHANGELOG.md ]; then
+          echo "# Changelog" > CHANGELOG.md
           echo "" >> CHANGELOG.md
-          
-          # Get the current content of CHANGELOG.md from the PR branch
-          PR_BRANCH=$(gh pr view $PR_NUMBER --json headRefName --jq .headRefName)
-          CURRENT_CONTENT=$(gh api repos/${{ github.repository }}/contents/CHANGELOG.md?ref=$PR_BRANCH | jq -r .content | base64 -d)
-          
-          # Combine the current content with the new changes
-          UPDATED_CONTENT=$(echo -e "$CURRENT_CONTENT\n$(cat CHANGELOG.md)")
-          
-          # Encode the updated content
-          ENCODED_CONTENT=$(echo "$UPDATED_CONTENT" | base64 -w 0)
-          
-          # Get the current SHA of the file
-          CURRENT_SHA=$(gh api repos/${{ github.repository }}/contents/CHANGELOG.md?ref=$PR_BRANCH | jq -r .sha)
-          
-          # Update the file in the PR branch using GitHub API
-          gh api --method PUT repos/${{ github.repository }}/contents/CHANGELOG.md \
-            -f message="Update CHANGELOG.md for PR #$PR_NUMBER" \
-            -f content="$ENCODED_CONTENT" \
-            -f sha="$CURRENT_SHA" \
-            -f branch="$PR_BRANCH"
-          
-          # Update the PR with a new label
-          gh pr edit $PR_NUMBER --add-label "changelog-updated"
+        fi
+
+        echo "## PR #$PR_NUMBER" >> CHANGELOG.md
+        echo "$PR_DESCRIPTION" >> CHANGELOG.md
+        echo "" >> CHANGELOG.md
+
+        # Commit changes
+        git add CHANGELOG.md
+        git commit -m "Update CHANGELOG.md for PR #$PR_NUMBER"
+
+        # Push the temporary branch
+        git push origin $TEMP_BRANCH
+
+        # Create a new PR to merge the temporary branch into the original PR's branch
+        ORIGINAL_PR_BRANCH=$(gh pr view $PR_NUMBER --json headRefName --jq .headRefName)
+        gh pr create --base $ORIGINAL_PR_BRANCH --head $TEMP_BRANCH --title "Update CHANGELOG for PR #$PR_NUMBER" --body "This PR updates the CHANGELOG.md for PR #$PR_NUMBER. Once merged, please delete this branch."
+
+        # Add a comment to the original PR
+        gh pr comment $PR_NUMBER --body "I've created a new PR to update the CHANGELOG.md. Please review and merge it."
+
+    - name: Cleanup
+      if: always()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: |
+        # Delete the temporary branch after 1 hour
+        TEMP_BRANCH="temp-changelog-update-${PR_NUMBER}"
+        (sleep 3600 && git push origin --delete $TEMP_BRANCH) &
