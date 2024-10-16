@@ -41,12 +41,12 @@ jobs:
             echo "No PR number found. Exiting."
             exit 1
           fi
-          echo "pr_number=PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Debug step
         run: |
-          echo "PR Number: ${{ inputs.base_ref }}"
+          echo "PR Number: ${{ steps.check.outputs.pr_number }}"
           echo "pr_action: ${{ inputs.pr_action }}"
           echo "base_ref: ${{ inputs.base_ref }}"
           echo "head_ref: ${{ inputs.head_ref }}"
@@ -99,7 +99,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
         run: |
-          LABELS=$(gh pr view ${{ PR_NUMBER }} --json labels --jq '.labels[].name')
+          LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
           if echo "$LABELS" | grep -q "${{ steps.determine-label.outputs.label }}"; then
             echo "label_exists=true" >> $GITHUB_OUTPUT
           else
@@ -116,7 +116,7 @@ jobs:
             --color "${{ steps.determine-label.outputs.color }}" \
             --description "PR size: ${{ steps.determine-label.outputs.label }}" \
             || true
-          gh pr edit ${{ PR_NUMBER }} --add-label "${{ steps.determine-label.outputs.label }}"
+          gh pr edit $PR_NUMBER --add-label "${{ steps.determine-label.outputs.label }}"
 
   pr-assign-reviewer:
     needs: check_conditions
