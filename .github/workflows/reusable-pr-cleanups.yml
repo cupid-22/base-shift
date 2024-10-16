@@ -27,7 +27,32 @@ on:
         type: string
 
 jobs:
+  check_conditions:
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.check.outputs.pr_number }}
+    steps:
+      - name: Check conditions
+        id: check
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number || github.event.number || inputs.pr_number }}"
+
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "No PR number found. Exiting."
+            exit 1
+          fi
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Debug step
+        run: |
+          echo "PR Number: ${{ steps.check.outputs.pr_number }}"
+          echo "pr_action: ${{ inputs.pr_action }}"
+          echo "base_ref: ${{ inputs.base_ref }}"
+          echo "head_ref: ${{ inputs.head_ref }}"
+
   prune-dead-branches:
+    needs: check_conditions
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository with submodules
@@ -47,33 +72,8 @@ jobs:
         with:
           repo_path: '.'
 
-  update-release-notes:
-    if: inputs.pr_action == 'closed'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Update CHANGELOG.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: |
-          PR_NUMBER="${{ inputs.pr_number }}"
-          PR_DESCRIPTION=$(gh pr view $PR_NUMBER --json body --jq .body)
-          if [ ! -f CHANGELOG.md ]; then
-            echo "# Changelog" > CHANGELOG.md
-            echo "" >> CHANGELOG.md
-          fi
-          echo "## PR #$PR_NUMBER" >> CHANGELOG.md
-          echo "$PR_DESCRIPTION" >> CHANGELOG.md
-          echo "" >> CHANGELOG.md
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
-          git add CHANGELOG.md
-          git commit -m "Update CHANGELOG.md for PR #$PR_NUMBER"
-          git push
-
   misc-checks:
+    needs: check_conditions
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository with submodules
