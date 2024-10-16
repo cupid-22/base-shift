@@ -1,21 +1,23 @@
 name: 🔄 Post PR Clean-ups
 
 on:
+  schedule:
+    - cron: '0 0 * * 0'  # Runs weekly on Sunday at midnight
   workflow_dispatch:
     inputs:
       pr_number:
         description: 'Pull request number'
-        required: true
+        required: false
         type: number
   workflow_call:
     inputs:
       pr_number:
         description: 'Pull request number'
-        required: true
+        required: false
         type: number
       pr_action:
         description: 'Current state of PR'
-        required: true
+        required: false
         type: string
       base_ref:
         description: 'Base branch reference'
@@ -35,25 +37,28 @@ jobs:
       - name: Check conditions
         id: check
         run: |
+          # Check if PR number is available either from event or input
           PR_NUMBER="${{ github.event.pull_request.number || github.event.number || inputs.pr_number }}"
 
-          if [[ -z "$PR_NUMBER" ]]; then
-            echo "No PR number found. Exiting."
+          if [[ -z "$PR_NUMBER" && "${{ github.event_name }}" != "schedule" ]]; then
+            echo "No PR number found and this is not a scheduled run. Exiting."
             exit 1
           fi
-          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+
+          echo "pr_number=${PR_NUMBER:-'scheduled-run'}" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Debug step
         run: |
           echo "PR Number: ${{ steps.check.outputs.pr_number }}"
-          echo "pr_action: ${{ inputs.pr_action }}"
-          echo "base_ref: ${{ inputs.base_ref }}"
-          echo "head_ref: ${{ inputs.head_ref }}"
+          echo "pr_action: ${{ inputs.pr_action || 'not provided' }}"
+          echo "base_ref: ${{ inputs.base_ref || 'not provided' }}"
+          echo "head_ref: ${{ inputs.head_ref || 'not provided' }}"
 
   prune-dead-branches:
     needs: check_conditions
     runs-on: ubuntu-latest
+    if: ${{ steps.check.outputs.pr_number != 'scheduled-run' || github.event_name == 'schedule' }}  # Proceed if it's a scheduled run or PR number is found
     steps:
       - name: Checkout the repository with submodules
         uses: actions/checkout@v4
@@ -77,6 +82,7 @@ jobs:
   misc-checks:
     needs: check_conditions
     runs-on: ubuntu-latest
+    if: ${{ steps.check.outputs.pr_number != 'scheduled-run' || github.event_name == 'schedule' }}  # Proceed if it's a scheduled run or PR number is found
     steps:
       - name: Checkout the repository with submodules
         uses: actions/checkout@v4
