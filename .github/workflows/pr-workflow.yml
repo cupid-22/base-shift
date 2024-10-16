@@ -35,6 +35,7 @@ jobs:
             echo "action=unknown" >> $GITHUB_OUTPUT
           fi
 
+
   opened_pr_workflows:
     needs: pulse_checks
     if: needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN' && (needs.pulse_checks.outputs.pr_action == 'opened' || needs.pulse_checks.outputs.pr_action == 'reopened')
