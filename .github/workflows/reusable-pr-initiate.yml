@@ -91,15 +91,30 @@ jobs:
   pr-assign-reviewer:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Assign reviewer
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
+          # Retrieve the pull request number, either from event or as input
+          PR_NUMBER="${{ github.event.pull_request.number || github.event.number || inputs.pr_number }}"
+          
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "No PR number found. Exiting."
+            exit 1
+          fi
+
           REVIEWER="cupid-22"
           EXISTING_REVIEWERS=$(gh pr view $PR_NUMBER --json reviewRequests --jq '.reviewRequests[].login')
+
           if [[ ! $EXISTING_REVIEWERS =~ $REVIEWER ]]; then
             gh pr edit $PR_NUMBER --add-reviewer "$REVIEWER"
+          else
+            echo "Reviewer $REVIEWER is already assigned."
           fi
 
   pr-description:
