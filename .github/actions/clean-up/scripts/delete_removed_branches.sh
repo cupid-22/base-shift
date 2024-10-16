@@ -1,39 +1,84 @@
 #!/bin/bash
 
-# Takes repository path as the input parameter
-repo_path=$1
+# Set error handling
+set -e
 
-# Function to delete branches that no longer exist on the remote
-delete_removed_branches() {
-  cd "$repo_path" || exit
+echo "Starting enhanced branch cleanup process..."
 
-  echo "Fetching and pruning remote branches in $repo_path..."
-  git fetch -p
+# Ensure we have all the remote information
+git fetch --prune --all
 
-  echo "Finding local branches that no longer exist on the remote in $repo_path..."
-  gone_branches=$(git for-each-ref --format '%(refname:short) %(upstream:track)' refs/heads | grep '\[gone\]' | awk '{print $1}')
+# Get list of all local branches
+local_branches=$(git branch --format="%(refname:short)")
 
-  if [ -z "$gone_branches" ]; then
-    echo "No local branches to delete in $repo_path."
-  else
-    echo "The following local branches will be deleted in $repo_path:"
-    echo "$gone_branches"
-    for branch in $gone_branches; do
-      git branch -d "$branch" && echo "Deleted branch: $branch" || echo "Failed to delete branch: $branch"
-    done
-  fi
+# Get list of all remote branches
+remote_branches=$(git branch -r --format="%(refname:short)")
+
+# Get default branch name (usually main or master)
+default_branch=$(git remote show origin | grep 'HEAD branch' | cut -d' ' -f5)
+
+# Get current branch
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+echo "Default branch: $default_branch"
+echo "Current branch: $current_branch"
+
+# Function to check if branch exists on remote
+branch_exists_on_remote() {
+    local branch=$1
+    git ls-remote --heads origin "$branch" | grep -q "$branch"
 }
 
-# Clean branches in the main repo
-delete_removed_branches "$repo_path"
+# Process each local branch
+echo "Checking all local branches..."
+for branch in $local_branches; do
+    # Skip default branch and current branch
+    if [ "$branch" = "$default_branch" ] || [ "$branch" = "$current_branch" ]; then
+        echo "Skipping protected branch: $branch"
+        continue
+    fi
 
-# Check for submodules and clean their branches
-if [ -f .gitmodules ]; then
-  echo "Submodules detected. Cleaning branches in submodules..."
-  git submodule foreach --quiet '
-    echo "Cleaning submodule: $name"
-    delete_removed_branches "$(pwd)"
-  '
+    # Check if branch exists on remote
+    if ! branch_exists_on_remote "$branch"; then
+        echo "Branch '$branch' no longer exists on remote - deleting..."
+        git branch -D "$branch" || echo "Failed to delete branch: $branch"
+    fi
+done
+
+# Special handling for recently merged/deleted branches
+echo "Checking for recently merged/deleted branches..."
+git fetch origin --prune
+
+# Get list of branches that have [gone] status
+gone_branches=$(git branch -vv | grep ': gone]' | awk '{print $1}')
+
+if [ -n "$gone_branches" ]; then
+    echo "Found branches to delete:"
+    echo "$gone_branches"
+
+    echo "$gone_branches" | while read -r branch; do
+        if [ "$branch" != "$default_branch" ] && [ "$branch" != "$current_branch" ]; then
+            echo "Deleting gone branch: $branch"
+            git branch -D "$branch" || echo "Failed to delete branch: $branch"
+        fi
+    done
 else
-  echo "No submodules detected."
+    echo "No additional gone branches found"
 fi
+
+# Clean up refs that might be left behind
+echo "Cleaning up refs..."
+git for-each-ref --format="%(refname:short)" refs/heads/ | while read -r branch; do
+    if [ "$branch" != "$default_branch" ] && [ "$branch" != "$current_branch" ]; then
+        if ! branch_exists_on_remote "$branch"; then
+            echo "Cleaning up ref for: $branch"
+            git branch -D "$branch" 2>/dev/null || true
+        fi
+    fi
+done
+
+echo "Branch cleanup completed"
+
+# Print remaining branches for verification
+echo "Remaining branches:"
+git branch -a
