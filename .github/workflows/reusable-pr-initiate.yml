@@ -195,17 +195,25 @@ jobs:
           echo "$PR_DESCRIPTION" >> CHANGELOG.md
           echo "" >> CHANGELOG.md
           
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
-          git add CHANGELOG.md
-          git commit -m "Update CHANGELOG.md for PR #$PR_NUMBER"
-          
-          # Fetch the PR branch
+          # Get the current content of CHANGELOG.md from the PR branch
           PR_BRANCH=$(gh pr view $PR_NUMBER --json headRefName --jq .headRefName)
-          git fetch origin $PR_BRANCH
-
-          # Push changes to the PR branch
-          git push origin HEAD:$PR_BRANCH
+          CURRENT_CONTENT=$(gh api repos/${{ github.repository }}/contents/CHANGELOG.md?ref=$PR_BRANCH | jq -r .content | base64 -d)
           
-          # Update the PR with the new changes
+          # Combine the current content with the new changes
+          UPDATED_CONTENT=$(echo -e "$CURRENT_CONTENT\n$(cat CHANGELOG.md)")
+          
+          # Encode the updated content
+          ENCODED_CONTENT=$(echo "$UPDATED_CONTENT" | base64 -w 0)
+          
+          # Get the current SHA of the file
+          CURRENT_SHA=$(gh api repos/${{ github.repository }}/contents/CHANGELOG.md?ref=$PR_BRANCH | jq -r .sha)
+          
+          # Update the file in the PR branch using GitHub API
+          gh api --method PUT repos/${{ github.repository }}/contents/CHANGELOG.md \
+            -f message="Update CHANGELOG.md for PR #$PR_NUMBER" \
+            -f content="$ENCODED_CONTENT" \
+            -f sha="$CURRENT_SHA" \
+            -f branch="$PR_BRANCH"
+          
+          # Update the PR with a new label
           gh pr edit $PR_NUMBER --add-label "changelog-updated"
