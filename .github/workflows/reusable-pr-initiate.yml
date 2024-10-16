@@ -110,6 +110,7 @@ jobs:
         if: steps.check-labels.outputs.label_exists == 'false'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
         run: |
           gh label create "${{ steps.determine-label.outputs.label }}" \
             --color "${{ steps.determine-label.outputs.color }}" \
@@ -125,9 +126,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Debug step
-        run: |
-          echo "PR Number: ${{ inputs.base_ref }}"
 
       - name: Assign reviewer
         env:
