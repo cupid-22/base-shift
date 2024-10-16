@@ -1,11 +1,12 @@
 name: 🔄 Ongoing PR Workflows
 
 on:
-  push:
-    branches:
-      - '**'
-    paths:
-      - '.github/workflows/reusable-pr-ongoing.yml'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Pull request number'
+        required: true
+        type: number
   workflow_call:
     inputs:
       pr_number:

@@ -1,11 +1,12 @@
-name: "Open Pull Request Workflow Jobs"
+name: "🚦 Open Pull Request Workflow Jobs"
 
 on:
-  push:
-    branches:
-      - '**'
-    paths:
-      - '.github/workflows/reusable-pr-initiate.yml'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Pull request number'
+        required: true
+        type: number
   workflow_call:
     inputs:
       pr_number:
@@ -33,16 +34,24 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Debug step
+        run: |
+          echo "PR Number: ${{ inputs.base_ref }}"
+          echo "pr_action: ${{ inputs.pr_action }}"
+          echo "base_ref: ${{ inputs.base_ref }}"
+          echo "head_ref: ${{ inputs.head_ref }}"
 
       - name: Calculate lines of code
         id: diff
+        env:
+          BASE_REF: ${{ inputs.base_ref || github.base_ref }}
+          HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
         run: |
-          BASE_REF="${{ inputs.base_ref || github.base_ref }}"
-          HEAD_REF="${{ inputs.head_ref || github.head_ref }}"
           LOC=$(git diff --shortstat origin/${BASE_REF}...${HEAD_REF} | awk '{print $1}')
           echo "lines_of_code=${LOC:-0}" >> $GITHUB_ENV
 
       - name: Determine PR size label
+        if: ${{ env.lines_of_code }}
         id: determine-label
         run: |
           if [ ${{ env.lines_of_code }} -eq 0 ]; then
@@ -89,18 +98,35 @@ jobs:
           gh pr edit ${{ inputs.pr_number }} --add-label "${{ steps.determine-label.outputs.label }}"
 
   pr-assign-reviewer:
-    needs: pulse_checks
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Debug step
+        run: |
+          echo "PR Number: ${{ inputs.base_ref }}"
+
       - name: Assign reviewer
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
+          # Retrieve the pull request number, either from event or as input
+          PR_NUMBER="${{ github.event.pull_request.number || github.event.number || inputs.pr_number }}"
+          
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "No PR number found. Exiting."
+            exit 1
+          fi
+
           REVIEWER="cupid-22"
           EXISTING_REVIEWERS=$(gh pr view $PR_NUMBER --json reviewRequests --jq '.reviewRequests[].login')
+
           if [[ ! $EXISTING_REVIEWERS =~ $REVIEWER ]]; then
             gh pr edit $PR_NUMBER --add-reviewer "$REVIEWER"
+          else
+            echo "Reviewer $REVIEWER is already assigned."
           fi
 
   pr-description:
@@ -110,14 +136,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Add PR template
-        if: needs.pulse_checks.outputs.pr_action == 'opened'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
           PR_BODY=$(cat << EOF
           ## Change Description
-          <!-- Please provide a brief description of the changes in this PR -->
+          <!-- Please provide a brief description of the changes in this PR, along with the ticket link -->
           
           ## Type of Change
           <!-- Please select the appropriate options -->
