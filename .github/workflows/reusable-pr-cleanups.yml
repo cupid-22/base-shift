@@ -71,6 +71,8 @@ jobs:
         uses: ./.github/actions/clean-up
         with:
           repo_path: '.'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   misc-checks:
     needs: check_conditions

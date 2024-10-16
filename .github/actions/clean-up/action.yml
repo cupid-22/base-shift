@@ -26,7 +26,7 @@ runs:
     - name: Delete merged branch
       shell: bash
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
       run: |
         BRANCH_NAME=$(gh pr view ${{ inputs.pr_number }} --json headRefName --jq .headRefName)
         git push origin --delete $BRANCH_NAME
