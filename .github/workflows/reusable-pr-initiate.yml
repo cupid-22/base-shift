@@ -1,4 +1,4 @@
-name: "🚦 Open Pull Request Workflow Jobs"
+name: 🔄 Open Pull Request Workflow Jobs
 
 on:
   workflow_dispatch:
