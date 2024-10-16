@@ -14,7 +14,6 @@ runs:
     - name: "Ensure Script is Executable"
       run: |
         chmod +x ./scripts/delete_removed_branches.sh
-        chmod +x ./scripts/check_large_files.sh
       working-directory: .github/actions/clean-up
       shell: bash
 
@@ -26,7 +25,7 @@ runs:
     - name: Delete merged branch
       shell: bash
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
       run: |
         BRANCH_NAME=$(gh pr view ${{ inputs.pr_number }} --json headRefName --jq .headRefName)
         git push origin --delete $BRANCH_NAME

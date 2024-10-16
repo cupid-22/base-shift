@@ -1,21 +1,23 @@
 name: 🔄 Post PR Clean-ups
 
 on:
+  schedule:
+    - cron: '0 0 * * 0'  # Runs weekly on Sunday at midnight
   workflow_dispatch:
     inputs:
       pr_number:
         description: 'Pull request number'
-        required: true
+        required: false
         type: number
   workflow_call:
     inputs:
       pr_number:
         description: 'Pull request number'
-        required: true
+        required: false
         type: number
       pr_action:
         description: 'Current state of PR'
-        required: true
+        required: false
         type: string
       base_ref:
         description: 'Base branch reference'
@@ -27,15 +29,43 @@ on:
         type: string
 
 jobs:
-  prune-dead-branches:
+  check_conditions:
     runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.check.outputs.pr_number }}
+    steps:
+      - name: Check conditions
+        id: check
+        run: |
+          # Check if PR number is available either from event or input
+          PR_NUMBER="${{ github.event.pull_request.number || github.event.number || inputs.pr_number }}"
+
+          if [[ -z "$PR_NUMBER" && "${{ github.event_name }}" != "schedule" ]]; then
+            echo "No PR number found and this is not a scheduled run. Exiting."
+            exit 1
+          fi
+
+          echo "pr_number=${PR_NUMBER:-'scheduled-run'}" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Debug step
+        run: |
+          echo "PR Number: ${{ steps.check.outputs.pr_number }}"
+          echo "pr_action: ${{ inputs.pr_action || 'not provided' }}"
+          echo "base_ref: ${{ inputs.base_ref || 'not provided' }}"
+          echo "head_ref: ${{ inputs.head_ref || 'not provided' }}"
+
+  prune-dead-branches:
+    needs: check_conditions
+    runs-on: ubuntu-latest
+    if: ${{ steps.check.outputs.pr_number != 'scheduled-run' || github.event_name == 'schedule' }}  # Proceed if it's a scheduled run or PR number is found
     steps:
       - name: Checkout the repository with submodules
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Handle Git Submodules
         uses: ./.github/actions/handle-submodules
@@ -46,42 +76,20 @@ jobs:
         uses: ./.github/actions/clean-up
         with:
           repo_path: '.'
-
-  update-release-notes:
-    if: inputs.pr_action == 'closed'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Update CHANGELOG.md
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: |
-          PR_NUMBER="${{ inputs.pr_number }}"
-          PR_DESCRIPTION=$(gh pr view $PR_NUMBER --json body --jq .body)
-          if [ ! -f CHANGELOG.md ]; then
-            echo "# Changelog" > CHANGELOG.md
-            echo "" >> CHANGELOG.md
-          fi
-          echo "## PR #$PR_NUMBER" >> CHANGELOG.md
-          echo "$PR_DESCRIPTION" >> CHANGELOG.md
-          echo "" >> CHANGELOG.md
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
-          git add CHANGELOG.md
-          git commit -m "Update CHANGELOG.md for PR #$PR_NUMBER"
-          git push
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   misc-checks:
+    needs: check_conditions
     runs-on: ubuntu-latest
+    if: ${{ steps.check.outputs.pr_number != 'scheduled-run' || github.event_name == 'schedule' }}  # Proceed if it's a scheduled run or PR number is found
     steps:
       - name: Checkout the repository with submodules
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Handle Git Submodules
         uses: ./.github/actions/handle-submodules

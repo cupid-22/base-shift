@@ -1,4 +1,4 @@
-name: 💾 PR Workflow
+name: 💾 [Core] PR Workflow
 
 on:
   pull_request:
