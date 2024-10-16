@@ -190,7 +190,7 @@ jobs:
     - name: Update CHANGELOG.md
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        PR_NUMBER: ${{ github.event.pull_request.number }}
+        PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
       run: |
         # Setup git
         git config user.name "GitHub Action"
@@ -231,7 +231,7 @@ jobs:
       if: always()
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        PR_NUMBER: ${{ github.event.pull_request.number }}
+        PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
       run: |
         # Delete the temporary branch after 1 hour
         TEMP_BRANCH="temp-changelog-update-${PR_NUMBER}"
