@@ -35,7 +35,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Handle Git Submodules
         uses: ./.github/actions/handle-submodules
@@ -81,7 +81,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Handle Git Submodules
         uses: ./.github/actions/handle-submodules
