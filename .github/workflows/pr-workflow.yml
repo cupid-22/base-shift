@@ -2,39 +2,105 @@ name: 💾 [Core] PR Workflow
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, closed]
+    types: [ opened, synchronize, reopened, closed ]
   workflow_dispatch:
     inputs:
       pr_number:
         description: 'Pull request number'
         required: true
         type: number
+      debug_mode:
+        description: 'Enable debug mode for extra information'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   pulse_checks:
     runs-on: ubuntu-latest
     outputs:
-      pr_exists: ${{ steps.check_pr.outputs.exists }}
-      pr_state: ${{ steps.check_pr.outputs.state }}
-      pr_action: ${{ steps.check_pr.outputs.action }}
+      pr_exists: ${{ steps.check_pr.outputs.pr_exists }}
+      pr_state: ${{ steps.check_pr.outputs.pr_state }}
+      pr_action: ${{ steps.check_pr.outputs.pr_action }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Print PR number for debugging
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
+          echo "PR number being used: $PR_NUMBER"
+
+      - name: Check GitHub CLI authentication
+        run: |
+          gh auth status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Check if PR exists and get state
         id: check_pr
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
-          if gh pr view $PR_NUMBER &> /dev/null; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            STATE=$(gh pr view $PR_NUMBER --json state --jq .state)
-            echo "state=$STATE" >> $GITHUB_OUTPUT
-            echo "action=${{ github.event.action }}" >> $GITHUB_OUTPUT
+          echo "Checking PR #$PR_NUMBER"
+          
+          # Attempt to view the PR and capture the output
+          PR_VIEW_OUTPUT=$(gh pr view $PR_NUMBER 2>&1 || true)  # Prevent script from exiting on failure
+          echo "gh pr view output: $PR_VIEW_OUTPUT"
+
+          # Check if the output indicates that the PR was not found
+          if echo "$PR_VIEW_OUTPUT" | grep -q 'not found'; then
+            echo "PR does not exist or is inaccessible"
+            echo "pr_exists=false" >> $GITHUB_OUTPUT
+            echo "pr_state=unknown" >> $GITHUB_OUTPUT
+            echo "pr_action=unknown" >> $GITHUB_OUTPUT
           else
-            echo "exists=false" >> $GITHUB_OUTPUT
-            echo "state=unknown" >> $GITHUB_OUTPUT
-            echo "action=unknown" >> $GITHUB_OUTPUT
+            echo "PR exists and details are available"
+            echo "pr_exists=true" >> $GITHUB_OUTPUT
+          
+            # Extract the PR state using string manipulation
+            STATE=$(echo "$PR_VIEW_OUTPUT" | grep -oP 'state:\s+\K\w+')
+            if [ -z "$STATE" ]; then
+                STATE="unknown"
+            fi
+            echo "pr_state=$STATE" >> $GITHUB_OUTPUT
+            echo "pr_action=synchronize" >> $GITHUB_OUTPUT
           fi
 
+  debug_mode:
+    needs: [pulse_checks]
+    if: ${{ inputs.debug_mode == true }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run detailed debug information
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          echo ""
+          echo "Debug Info:"
+
+          echo ""
+          echo "Condition satisfying 'opened_pr_workflows':"
+          echo "needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN' && (needs.pulse_checks.outputs.pr_action == 'opened' || needs.pulse_checks.outputs.pr_action == 'reopened')"
+          echo "PR Exists: ${{ needs.pulse_checks.outputs.pr_exists }}"
+          echo "PR State: ${{ needs.pulse_checks.outputs.pr_state }}"
+          echo "PR Action: ${{ needs.pulse_checks.outputs.pr_action }}"
+
+          echo ""
+          echo "Condition for 'ongoing_pr_workflows':"
+          echo "needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN'"
+          echo "PR Exists: ${{ needs.pulse_checks.outputs.pr_exists }}"
+          echo "PR State: ${{ needs.pulse_checks.outputs.pr_state }}"
+
+          echo ""
+          echo "Condition for 'closed_pr_workflows':"
+          echo "needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'CLOSED' && github.event.pull_request.merged == true"
+          echo "PR Exists: ${{ needs.pulse_checks.outputs.pr_exists }}"
+          echo "PR State: ${{ needs.pulse_checks.outputs.pr_state }}"
+          echo "PR Merged: ${{ github.event.pull_request.merged }} (Expected: true)"
 
   opened_pr_workflows:
     needs: pulse_checks
@@ -70,7 +136,7 @@ jobs:
     secrets: inherit
 
   notify:
-    needs: [pulse_checks, opened_pr_workflows, ongoing_pr_workflows, closed_pr_workflows]
+    needs: [ pulse_checks, opened_pr_workflows, ongoing_pr_workflows, closed_pr_workflows ]
     if: always()
     runs-on: ubuntu-latest
     steps:

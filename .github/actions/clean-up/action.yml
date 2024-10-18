@@ -3,32 +3,52 @@ description: "Safely remove local branches that are deleted from remote and clea
 author: "Gaurav Mishra"
 
 inputs:
-  repo_path:
-    description: "Path to the main repository"
+  pr_number:
+    description: "PR number for selective cleanup, or 'full-cleanup' for full mode"
     required: false
-    default: "."
+    default: ""
+  is_full_cleanup:
+    description: "Whether to perform full repository cleanup"
+    required: false
+    default: "false"
+  github_token:
+    description: "GitHub token for authentication"
+    required: true
 
 runs:
   using: "composite"
   steps:
-    - name: "Ensure Script is Executable"
+    - name: "Configure Git"
+      shell: bash
       run: |
-        chmod +x ./scripts/delete_removed_branches.sh
-      working-directory: .github/actions/clean-up
-      shell: bash
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
 
-    - name: "Remove dead branches"
-      run: ./scripts/delete_removed_branches.sh ${{ inputs.repo_path }}
-      working-directory: .github/actions/clean-up
+    - name: "Set cleanup mode and validate inputs"
+      id: setup
       shell: bash
+      run: |
+        # Determine cleanup mode based on inputs
+        if [[ "${{ inputs.pr_number }}" == "full-cleanup" || "${{ inputs.is_full_cleanup }}" == "true" ]]; then
+          echo "Setting full cleanup mode"
+          echo "cleanup_mode=full" >> $GITHUB_ENV
+        else
+          echo "Setting selective cleanup mode"
+          echo "cleanup_mode=selective" >> $GITHUB_ENV
+          
+          # Validate PR number if in selective mode
+          if [[ -n "${{ inputs.pr_number }}" && "${{ inputs.pr_number }}" != "full-cleanup" ]]; then
+            echo "PR number provided: ${{ inputs.pr_number }}"
+          fi
+        fi
 
-    - name: Delete merged branch
+    - name: "Execute branch cleanup"
       shell: bash
+      run: |
+        chmod +x ${{ github.action_path }}/scripts/delete_removed_branches.sh 
+        ${{ github.action_path }}/scripts/delete_removed_branches.sh ${{ env.cleanup_mode }} ${{ inputs.pr_number }}
       env:
-        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-      run: |
-        BRANCH_NAME=$(gh pr view ${{ inputs.pr_number }} --json headRefName --jq .headRefName)
-        git push origin --delete $BRANCH_NAME
+        GITHUB_TOKEN: ${{ inputs.github_token }}
 
 branding:
   icon: "trash"
