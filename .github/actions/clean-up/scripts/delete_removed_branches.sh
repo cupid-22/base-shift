@@ -134,6 +134,7 @@ main() {
             fi
         else
             echo "Maybe was for the full-cleanup..."
+        fi
     fi
 
     # Always process gone branches
