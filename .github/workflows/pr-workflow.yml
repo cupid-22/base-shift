@@ -18,8 +18,6 @@ on:
 jobs:
   pulse_checks:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
     outputs:
       pr_exists: ${{ steps.check_pr.outputs.exists }}
       pr_state: ${{ steps.check_pr.outputs.state }}
@@ -34,12 +32,12 @@ jobs:
         run: |
           gh auth status
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 
       - name: Check if PR exists and get state
         id: check_pr
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
           echo "Checking PR #$PR_NUMBER"
@@ -67,7 +65,7 @@ jobs:
     steps:
       - name: Run detailed debug information
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           echo ""
           echo "Debug Info:"
