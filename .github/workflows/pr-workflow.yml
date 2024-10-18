@@ -28,7 +28,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-
       - name: Print PR number for debugging
         run: |
           PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
@@ -61,10 +60,14 @@ jobs:
           else
             echo "PR exists and details are available"
             echo "pr_exists=true" >> $GITHUB_OUTPUT
-            # Extract the PR state from the output
-            STATE=$(echo "$PR_VIEW_OUTPUT" | jq -r .state || echo "unknown")  # Default to "unknown" if jq fails
+          
+            # Extract the PR state using string manipulation
+            STATE=$(echo "$PR_VIEW_OUTPUT" | grep -oP 'state:\s+\K\w+')
+            if [ -z "$STATE" ]; then
+                STATE="unknown"
+            fi
             echo "pr_state=$STATE" >> $GITHUB_OUTPUT
-            echo "pr_action=${{ github.event.action }}" >> $GITHUB_OUTPUT
+            echo "pr_action=synchronize" >> $GITHUB_OUTPUT
           fi
 
   debug_mode:
