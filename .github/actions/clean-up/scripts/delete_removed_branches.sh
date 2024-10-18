@@ -91,41 +91,46 @@ evaluate_branch() {
     return 0
 }
 
-# Ensure we have latest remote information
-echo "Fetching latest remote information..."
-git fetch --prune --all
+# Main cleanup function
+main() {
+    # Ensure we have latest remote information
+    echo "Fetching latest remote information..."
+    git fetch --prune --all
 
-# Get current branch
-current_branch=$(git rev-parse --abbrev-ref HEAD)
-echo "Current branch: $current_branch"
+    # Get current branch
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+    echo "Current branch: $current_branch"
 
-# Get all remote branches (excluding protected ones)
-echo "Processing remote branches..."
-readarray -t remote_branches < <(git branch -r | grep -v ' -> ' | sed 's/origin\///' | grep -vE "^($(IFS='|'; echo "${PROTECTED_PATTERNS[*]}"))")
+    # Check if we're in full cleanup mode
+    if [[ "${CLEANUP_MODE:-selective}" == "full" ]]; then
+        echo "Performing full cleanup..."
 
-for branch in "${remote_branches[@]}"; do
-    branch=$(echo "$branch" | xargs)  # Trim whitespace
-    if [[ -n "$branch" ]] && evaluate_branch "$branch"; then
-        if [[ "${CLEANUP_MODE:-selective}" == "full" ]]; then
-            echo "Full cleanup: processing branch $branch"
-            delete_branch "$branch"
-        elif ! git show-ref --quiet "refs/remotes/origin/$branch"; then
-            echo "Selective cleanup: processing gone branch $branch"
+        # Process all remote branches
+        echo "Processing remote branches..."
+        readarray -t remote_branches < <(git branch -r | grep -v ' -> ' | sed 's/origin\///' | grep -vE "^($(IFS='|'; echo "${PROTECTED_PATTERNS[*]}"))")
+
+        for branch in "${remote_branches[@]}"; do
+            branch=$(echo "$branch" | xargs)  # Trim whitespace
+            if [[ -n "$branch" ]] && evaluate_branch "$branch"; then
+                delete_branch "$branch"
+            fi
+        done
+    fi
+
+    # Always process gone branches
+    echo "Processing gone branches..."
+    readarray -t gone_branches < <(git branch -vv | grep ': gone]' | awk '{print $1}')
+
+    for branch in "${gone_branches[@]}"; do
+        if evaluate_branch "$branch"; then
+            echo "Deleting gone branch: $branch"
             delete_branch "$branch"
         fi
-    fi
-done
+    done
+}
 
-# Get all local branches that are gone from remote
-echo "Processing gone branches..."
-readarray -t gone_branches < <(git branch -vv | grep ': gone]' | awk '{print $1}')
-
-for branch in "${gone_branches[@]}"; do
-    if evaluate_branch "$branch"; then
-        echo "Deleting gone branch: $branch"
-        delete_branch "$branch"
-    fi
-done
+# Run main cleanup
+main
 
 # Print summary
 echo "🧹 Cleanup Summary:"

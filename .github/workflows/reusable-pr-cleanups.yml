@@ -117,8 +117,7 @@ jobs:
       - name: Run Clean-up scripts
         uses: ./.github/actions/clean-up
         with:
-#          pr_number: ${{ needs.check_conditions.outputs.pr_number }}
-          is_full_cleanup: ${{ needs.check_conditions.outputs.pr_number == 'full-cleanup' }}
+          pr_number: ${{ needs.check_conditions.outputs.pr_number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
