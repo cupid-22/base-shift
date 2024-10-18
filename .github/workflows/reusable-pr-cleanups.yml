@@ -84,7 +84,7 @@ jobs:
       - name: Run Clean-up scripts
         uses: ./.github/actions/clean-up
         with:
-          repo_path: '.'
+          pr_number: ${{ inputs.pr_number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

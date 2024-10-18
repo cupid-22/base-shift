@@ -3,10 +3,9 @@ description: "Safely remove local branches that are deleted from remote and clea
 author: "Gaurav Mishra"
 
 inputs:
-  repo_path:
-    description: "Path to the main repository"
+  pr_number:
+    description: "PR number which would require pruning"
     required: false
-    default: "."
 
 runs:
   using: "composite"
@@ -18,17 +17,12 @@ runs:
       shell: bash
 
     - name: "Remove dead branches"
-      run: ./scripts/delete_removed_branches.sh ${{ inputs.repo_path }}
+      run: ./scripts/delete_removed_branches.sh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PR_NUMBER: ${{ inputs.pr_number }}
       working-directory: .github/actions/clean-up
       shell: bash
-
-    - name: Delete merged branch
-      shell: bash
-      env:
-        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-      run: |
-        BRANCH_NAME=$(gh pr view ${{ inputs.pr_number }} --json headRefName --jq .headRefName)
-        git push origin --delete $BRANCH_NAME
 
 branding:
   icon: "trash"
