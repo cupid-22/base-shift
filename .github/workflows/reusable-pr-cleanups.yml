@@ -118,8 +118,8 @@ jobs:
         uses: ./.github/actions/clean-up
         with:
           pr_number: ${{ needs.check_conditions.outputs.pr_number }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          is_full_cleanup: ${{ github.event.inputs.is_full_cleanup == 'true' }}
 
   misc-checks:
     needs: [check_conditions]

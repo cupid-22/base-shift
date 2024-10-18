@@ -4,36 +4,52 @@ author: "Gaurav Mishra"
 
 inputs:
   pr_number:
-    description: "PR number which would require pruning or 'full-cleanup' for full mode"
+    description: "PR number for selective cleanup, or 'full-cleanup' for full mode"
     required: false
     default: ""
   is_full_cleanup:
     description: "Whether to perform full repository cleanup"
     required: false
     default: "false"
+  github_token:
+    description: "GitHub token for authentication"
+    required: true
 
 runs:
   using: "composite"
   steps:
-    - name: "Set cleanup mode"
-      id: setup
-      run: |
-        if [[ "${{ inputs.pr_number }}" == "full-cleanup" || "${{ inputs.is_full_cleanup }}" == "true" ]]; then
-          echo "CLEANUP_MODE=full" >> $GITHUB_ENV
-        else
-          echo "CLEANUP_MODE=selective" >> $GITHUB_ENV
-        fi
+    - name: "Configure Git"
       shell: bash
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
 
-    - name: "Remove dead branches"
-      run: |
-        chmod +x ./scripts/delete_removed_branches.sh
-        ./scripts/delete_removed_branches.sh
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-        CLEANUP_MODE: ${{ env.CLEANUP_MODE }}
-      working-directory: .github/actions/clean-up
+    - name: "Set cleanup mode and validate inputs"
+      id: setup
       shell: bash
+      run: |
+        # Determine cleanup mode based on inputs
+        if [[ "${{ inputs.pr_number }}" == "full-cleanup" || "${{ inputs.is_full_cleanup }}" == "true" ]]; then
+          echo "Setting full cleanup mode"
+          echo "cleanup_mode=full" >> $GITHUB_ENV
+        else
+          echo "Setting selective cleanup mode"
+          echo "cleanup_mode=selective" >> $GITHUB_ENV
+          
+          # Validate PR number if in selective mode
+          if [[ -n "${{ inputs.pr_number }}" && "${{ inputs.pr_number }}" != "full-cleanup" ]]; then
+            echo "PR number provided: ${{ inputs.pr_number }}"
+          fi
+        fi
+
+    - name: "Execute branch cleanup"
+      shell: bash
+      working-directory: .github/actions/clean-up
+      run: |
+        chmod +x ${{ github.action_path }}/scripts/delete_removed_branches.sh
+        CLEANUP_MODE="${{ env.cleanup_mode }}" ${{ github.action_path }}/scripts/delete_removed_branches.sh
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
 
 branding:
   icon: "trash"

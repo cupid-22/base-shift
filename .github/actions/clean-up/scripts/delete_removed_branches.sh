@@ -20,7 +20,8 @@ declare -a skipped_current=()
 declare -a failed_deletions=()
 
 echo "Starting branch cleanup process..."
-echo "Cleanup mode: ${CLEANUP_MODE:-selective}"
+CLEANUP_MODE=$1
+echo "Cleanup mode: ${CLEANUP_MODE}"
 
 # Function to check if a branch matches any protected pattern
 is_protected() {
@@ -100,9 +101,8 @@ main() {
     # Get current branch
     current_branch=$(git rev-parse --abbrev-ref HEAD)
     echo "Current branch: $current_branch"
-
     # Check if we're in full cleanup mode
-    if [[ "${CLEANUP_MODE:-selective}" == "full" ]]; then
+    if [[ "${CLEANUP_MODE}" == "full" ]]; then
         echo "Performing full cleanup..."
 
         # Process all remote branches
