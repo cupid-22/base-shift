@@ -29,12 +29,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
+          echo "$PR_NUMBER"
           if gh pr view $PR_NUMBER &> /dev/null; then
+            echo "Could find PR details"
             echo "pr_exists=true" >> $GITHUB_OUTPUT
             STATE=$(gh pr view $PR_NUMBER --json state --jq .state)
             echo "pr_state=$STATE" >> $GITHUB_OUTPUT
             echo "pr_action=${{ github.event.action }}" >> $GITHUB_OUTPUT
           else
+            echo "Maybe the PR do not exist"
             echo "pr_exists=false" >> $GITHUB_OUTPUT
             echo "pr_state=unknown" >> $GITHUB_OUTPUT
             echo "pr_action=unknown" >> $GITHUB_OUTPUT
