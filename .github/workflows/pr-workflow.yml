@@ -19,9 +19,9 @@ jobs:
   pulse_checks:
     runs-on: ubuntu-latest
     outputs:
-      pr_exists: ${{ steps.check_pr.outputs.exists }}
-      pr_state: ${{ steps.check_pr.outputs.state }}
-      pr_action: ${{ steps.check_pr.outputs.action }}
+      pr_exists: ${{ steps.check_pr.outputs.pr_exists }}
+      pr_state: ${{ steps.check_pr.outputs.pr_state }}
+      pr_action: ${{ steps.check_pr.outputs.pr_action }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
