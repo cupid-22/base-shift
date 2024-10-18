@@ -9,6 +9,11 @@ on:
         description: 'Pull request number'
         required: true
         type: number
+      debug_mode:
+        description: 'Enable debug mode for extra information'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   pulse_checks:
@@ -37,22 +42,55 @@ jobs:
 
           echo ""
           echo "Check if sub-workflows will run:"
-          if [[ "${{ github.event.action }}" == "opened" || "${{ github.event.action }}" == "reopened" ]]; then
-            echo "Condition for 'opened_pr_workflows':"
-            echo "PR Exists: $pr_exists"
-            echo "PR State: $STATE (Expected: 'OPEN')"
-            echo "PR Action: ${{ github.event.action }} (Expected: 'opened' or 'reopened')"
-          fi
+
+          echo ""
+          echo "Condition for 'opened_pr_workflows':"
+          echo "PR Exists: $pr_exists."
+          echo "PR State: $STATE (Expected: 'OPEN')"
+          echo "PR Action: ${{ github.event.action }} (Expected: 'opened' or 'reopened')"
 
           echo ""
           echo "Condition for 'ongoing_pr_workflows':"
-          echo "PR Exists: $pr_exists"
+          echo "PR Exists: $pr_exists."
           echo "PR State: $STATE (Expected: 'OPEN')"
 
           echo ""
           echo "Condition for 'closed_pr_workflows':"
-          echo "PR Exists: $pr_exists"
+          echo "PR Exists: $pr_exists."
           echo "PR State: $STATE (Expected: 'CLOSED')"
+          echo "PR Merged: ${{ github.event.pull_request.merged }} (Expected: true)"
+
+
+  debug_mode:
+    needs: [pulse_checks]
+    if: ${{ inputs.debug_mode == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run detailed debug information
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo ""
+          echo "Debug Info:"
+          
+          echo ""
+          echo "Condition satisfying 'opened_pr_workflows':"
+          echo "needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN' && (needs.pulse_checks.outputs.pr_action == 'opened' || needs.pulse_checks.outputs.pr_action == 'reopened')"
+          echo "PR Exists: ${{ needs.pulse_checks.outputs.pr_exists }}"
+          echo "PR State: ${{ needs.pulse_checks.outputs.pr_state }}"
+          echo "PR Action: ${{ needs.pulse_checks.outputs.pr_action }}"
+
+          echo ""
+          echo "Condition for 'ongoing_pr_workflows':"
+          echo "needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN'"
+          echo "PR Exists: ${{ needs.pulse_checks.outputs.pr_exists }}"
+          echo "PR State: ${{ needs.pulse_checks.outputs.pr_state }}"
+
+          echo ""
+          echo "Condition for 'closed_pr_workflows':"
+          echo "needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'CLOSED' && github.event.pull_request.merged == true"
+          echo "PR Exists: ${{ needs.pulse_checks.outputs.pr_exists }}"
+          echo "PR State: ${{ needs.pulse_checks.outputs.pr_state }}"
           echo "PR Merged: ${{ github.event.pull_request.merged }} (Expected: true)"
 
   opened_pr_workflows:
