@@ -32,19 +32,21 @@ jobs:
         run: |
           gh auth status
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check if PR exists and get state
         id: check_pr
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
           echo "Checking PR #$PR_NUMBER"
           
-          PR_VIEW_OUTPUT=$(gh pr view $PR_NUMBER 2>&1)
+          # Attempt to view the PR and capture the output
+          PR_VIEW_OUTPUT=$(gh pr view $PR_NUMBER 2>&1 || true)  # Prevent script from exiting on failure
           echo "gh pr view output: $PR_VIEW_OUTPUT"
 
+          # Check if the output indicates that the PR was not found
           if echo "$PR_VIEW_OUTPUT" | grep -q 'not found'; then
             echo "PR does not exist or is inaccessible"
             echo "pr_exists=false" >> $GITHUB_OUTPUT
@@ -53,7 +55,8 @@ jobs:
           else
             echo "PR exists and details are available"
             echo "pr_exists=true" >> $GITHUB_OUTPUT
-            STATE=$(echo "$PR_VIEW_OUTPUT" | jq -r .state)
+            # Extract the PR state from the output
+            STATE=$(echo "$PR_VIEW_OUTPUT" | jq -r .state || echo "unknown")  # Default to "unknown" if jq fails
             echo "pr_state=$STATE" >> $GITHUB_OUTPUT
             echo "pr_action=${{ github.event.action }}" >> $GITHUB_OUTPUT
           fi
