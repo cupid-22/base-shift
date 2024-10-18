@@ -23,6 +23,12 @@ jobs:
       pr_state: ${{ steps.check_pr.outputs.state }}
       pr_action: ${{ steps.check_pr.outputs.action }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
       - name: Print PR number for debugging
         run: |
           PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
