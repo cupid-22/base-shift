@@ -18,6 +18,8 @@ on:
 jobs:
   pulse_checks:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
     outputs:
       pr_exists: ${{ steps.check_pr.outputs.exists }}
       pr_state: ${{ steps.check_pr.outputs.state }}
