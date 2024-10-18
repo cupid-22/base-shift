@@ -6,10 +6,19 @@ inputs:
   pr_number:
     description: "PR number which would require pruning"
     required: false
+  is_full_cleanup:
+    description: "Whether to perform full repository cleanup"
+    required: false
 
 runs:
   using: "composite"
   steps:
+    - name: "Set cleanup mode"
+      id: setup
+      run: |
+        echo "CLEANUP_MODE=${{ inputs.is_full_cleanup == 'true' && 'full' || 'selective' }}" >> $GITHUB_ENV
+      shell: bash
+
     - name: "Ensure Script is Executable"
       run: |
         chmod +x ./scripts/delete_removed_branches.sh
@@ -19,8 +28,9 @@ runs:
     - name: "Remove dead branches"
       run: ./scripts/delete_removed_branches.sh
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
         PR_NUMBER: ${{ inputs.pr_number }}
+        CLEANUP_MODE: ${{ env.CLEANUP_MODE }}
       working-directory: .github/actions/clean-up
       shell: bash
 
