@@ -25,14 +25,14 @@ jobs:
         run: |
           PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
           if gh pr view $PR_NUMBER &> /dev/null; then
-            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "pr_exists=true" >> $GITHUB_OUTPUT
             STATE=$(gh pr view $PR_NUMBER --json state --jq .state)
-            echo "state=$STATE" >> $GITHUB_OUTPUT
-            echo "action=${{ github.event.action }}" >> $GITHUB_OUTPUT
+            echo "pr_state=$STATE" >> $GITHUB_OUTPUT
+            echo "pr_action=${{ github.event.action }}" >> $GITHUB_OUTPUT
           else
-            echo "exists=false" >> $GITHUB_OUTPUT
-            echo "state=unknown" >> $GITHUB_OUTPUT
-            echo "action=unknown" >> $GITHUB_OUTPUT
+            echo "pr_exists=false" >> $GITHUB_OUTPUT
+            echo "pr_state=unknown" >> $GITHUB_OUTPUT
+            echo "pr_action=unknown" >> $GITHUB_OUTPUT
           fi
 
 
