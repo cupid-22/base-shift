@@ -10,7 +10,6 @@ PROTECTED_PATTERNS=(
     "develop"
     "release/*"
     "hotfix/*"
-    "gh-pages"
 )
 
 # Initialize arrays to track operations
