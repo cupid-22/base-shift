@@ -83,7 +83,7 @@ jobs:
           fi
           
           echo "should_run=${SHOULD_RUN}" >> $GITHUB_OUTPUT
-          echo "pr_number=${PR_NUMBER:-'full-cleanup'}" >> $GITHUB_OUTPUT
+          echo "pr_number=${PR_NUMBER:-full-cleanup}" >> $GITHUB_OUTPUT
           echo "is_scheduled=${IS_SCHEDULED}" >> $GITHUB_OUTPUT
         shell: bash
 

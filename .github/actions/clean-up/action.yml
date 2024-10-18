@@ -44,10 +44,9 @@ runs:
 
     - name: "Execute branch cleanup"
       shell: bash
-#      working-directory: .github/actions/clean-up
       run: |
-        chmod +x ${{ github.action_path }}/scripts/delete_removed_branches.sh
-        CLEANUP_MODE="${{ env.cleanup_mode }}" ${{ github.action_path }}/scripts/delete_removed_branches.sh
+        chmod +x ${{ github.action_path }}/scripts/delete_removed_branches.sh 
+        ${{ github.action_path }}/scripts/delete_removed_branches.sh ${{ env.cleanup_mode }} ${{ inputs.pr_number }}
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
 

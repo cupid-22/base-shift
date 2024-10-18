@@ -20,8 +20,10 @@ declare -a skipped_current=()
 declare -a failed_deletions=()
 
 echo "Starting branch cleanup process..."
-#CLEANUP_MODE=$1
+CLEANUP_MODE=$1
+PR_NUMBER=$2
 echo "Cleanup mode: ${CLEANUP_MODE}"
+echo "PR if provided: ${PR_NUMBER}"
 
 # Function to check if a branch matches any protected pattern
 is_protected() {
@@ -115,7 +117,23 @@ main() {
             fi
         done < <(git branch -r | grep -v ' -> ' | sed 's/origin\///' | grep -vE "^($(IFS='|'; echo "${PROTECTED_PATTERNS[*]}"))")
     else
+        # Handle specific PR if number is provided
         echo "Performing selective cleanup of gone branches only..."
+        if [[ -n "${PR_NUMBER:-}" && "$PR_NUMBER" != "full-cleanup" ]]; then
+            echo "Processing specific PR #$PR_NUMBER"
+            branch=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+                "https://api.github.com/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" | \
+                jq -r '.head.ref')
+
+            if [[ -n "$branch" && "$branch" != "null" ]]; then
+                if evaluate_branch "$branch"; then
+                    delete_branch "$branch"
+                fi
+            else
+                echo "Could not find branch for PR #$PR_NUMBER"
+            fi
+        else
+            echo "Maybe was for the full-cleanup..."
     fi
 
     # Always process gone branches
