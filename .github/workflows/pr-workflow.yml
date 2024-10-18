@@ -34,6 +34,11 @@ jobs:
             echo "pr_state=unknown" >> $GITHUB_OUTPUT
             echo "pr_action=unknown" >> $GITHUB_OUTPUT
           fi
+          echo ""
+          echo "Check if sub workflows will run?"
+          echo "Opened PR: $pr_exists == 'true' && $pr_state == 'OPEN' && ($pr_action == 'opened' || $pr_action == 'reopened')"
+          echo "Ongoing PR: $pr_exists == 'true' && $pr_state == 'OPEN'"
+          echo "Closing PR: $pr_exists == 'true' && $pr_state == 'CLOSED' && github.event.pull_request.merged == true"
 
 
   opened_pr_workflows:
