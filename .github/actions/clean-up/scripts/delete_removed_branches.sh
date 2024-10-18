@@ -45,7 +45,7 @@ has_active_pr() {
     if [[ -z "${GITHUB_TOKEN:-}" ]]; then
         echo "Warning: GITHUB_TOKEN not set, skipping PR check"
         return 1
-    }
+    fi
 
     local response
     response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
