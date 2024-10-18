@@ -70,7 +70,9 @@ jobs:
           echo "lines_of_code=${LOC:-0}" >> $GITHUB_ENV
 
       - name: Determine PR size label
-        if: ${{ env.lines_of_code }}
+#        if: ${{ env.lines_of_code }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         id: determine-label
         run: |
           if [ ${{ env.lines_of_code }} -eq 0 ]; then
