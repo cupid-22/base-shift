@@ -20,7 +20,7 @@ declare -a skipped_current=()
 declare -a failed_deletions=()
 
 echo "Starting branch cleanup process..."
-CLEANUP_MODE=$1
+#CLEANUP_MODE=$1
 echo "Cleanup mode: ${CLEANUP_MODE}"
 
 # Function to check if a branch matches any protected pattern
@@ -101,32 +101,31 @@ main() {
     # Get current branch
     current_branch=$(git rev-parse --abbrev-ref HEAD)
     echo "Current branch: $current_branch"
-    # Check if we're in full cleanup mode
-    if [[ "${CLEANUP_MODE}" == "full" ]]; then
+
+    # Check cleanup mode from environment variable
+    if [[ "${CLEANUP_MODE:-selective}" == "full" ]]; then
         echo "Performing full cleanup..."
 
         # Process all remote branches
         echo "Processing remote branches..."
-        readarray -t remote_branches < <(git branch -r | grep -v ' -> ' | sed 's/origin\///' | grep -vE "^($(IFS='|'; echo "${PROTECTED_PATTERNS[*]}"))")
-
-        for branch in "${remote_branches[@]}"; do
+        while IFS= read -r branch; do
             branch=$(echo "$branch" | xargs)  # Trim whitespace
             if [[ -n "$branch" ]] && evaluate_branch "$branch"; then
                 delete_branch "$branch"
             fi
-        done
+        done < <(git branch -r | grep -v ' -> ' | sed 's/origin\///' | grep -vE "^($(IFS='|'; echo "${PROTECTED_PATTERNS[*]}"))")
+    else
+        echo "Performing selective cleanup of gone branches only..."
     fi
 
     # Always process gone branches
     echo "Processing gone branches..."
-    readarray -t gone_branches < <(git branch -vv | grep ': gone]' | awk '{print $1}')
-
-    for branch in "${gone_branches[@]}"; do
+    while IFS= read -r branch; do
         if evaluate_branch "$branch"; then
             echo "Deleting gone branch: $branch"
             delete_branch "$branch"
         fi
-    done
+    done < <(git branch -vv | grep ': gone]' | awk '{print $1}')
 }
 
 # Run main cleanup
