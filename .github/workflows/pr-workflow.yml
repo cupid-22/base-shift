@@ -2,7 +2,7 @@ name: 💾 [Core] PR Workflow
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, closed]
+    types: [ opened, synchronize, reopened, closed ]
   workflow_dispatch:
     inputs:
       pr_number:
@@ -34,12 +34,26 @@ jobs:
             echo "pr_state=unknown" >> $GITHUB_OUTPUT
             echo "pr_action=unknown" >> $GITHUB_OUTPUT
           fi
-          echo ""
-          echo "Check if sub workflows will run?"
-          echo "Opened PR: $pr_exists == 'true' && $pr_state == 'OPEN' && ($pr_action == 'opened' || $pr_action == 'reopened')"
-          echo "Ongoing PR: $pr_exists == 'true' && $pr_state == 'OPEN'"
-          echo "Closing PR: $pr_exists == 'true' && $pr_state == 'CLOSED' && github.event.pull_request.merged == true"
 
+          echo ""
+          echo "Check if sub-workflows will run:"
+          if [[ "${{ github.event.action }}" == "opened" || "${{ github.event.action }}" == "reopened" ]]; then
+            echo "Condition for 'opened_pr_workflows':"
+            echo "PR Exists: $pr_exists"
+            echo "PR State: $STATE (Expected: 'OPEN')"
+            echo "PR Action: ${{ github.event.action }} (Expected: 'opened' or 'reopened')"
+          fi
+
+          echo ""
+          echo "Condition for 'ongoing_pr_workflows':"
+          echo "PR Exists: $pr_exists"
+          echo "PR State: $STATE (Expected: 'OPEN')"
+
+          echo ""
+          echo "Condition for 'closed_pr_workflows':"
+          echo "PR Exists: $pr_exists"
+          echo "PR State: $STATE (Expected: 'CLOSED')"
+          echo "PR Merged: ${{ github.event.pull_request.merged }} (Expected: true)"
 
   opened_pr_workflows:
     needs: pulse_checks
@@ -75,7 +89,7 @@ jobs:
     secrets: inherit
 
   notify:
-    needs: [pulse_checks, opened_pr_workflows, ongoing_pr_workflows, closed_pr_workflows]
+    needs: [ pulse_checks, opened_pr_workflows, ongoing_pr_workflows, closed_pr_workflows ]
     if: always()
     runs-on: ubuntu-latest
     steps:
