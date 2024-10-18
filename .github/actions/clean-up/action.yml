@@ -3,10 +3,6 @@ description: "Safely remove local branches that are deleted from remote and clea
 author: "Gaurav Mishra"
 
 inputs:
-  pr_number:
-    description: "PR number which would require pruning"
-    required: false
-    default: ""
   is_full_cleanup:
     description: "Whether to perform full repository cleanup"
     required: false
@@ -31,7 +27,6 @@ runs:
         ./scripts/delete_removed_branches.sh
       env:
         GITHUB_TOKEN: ${{ github.token }}
-        PR_NUMBER: ${{ inputs.pr_number }}
         CLEANUP_MODE: ${{ env.CLEANUP_MODE }}
       working-directory: .github/actions/clean-up
       shell: bash
