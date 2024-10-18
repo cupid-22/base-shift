@@ -28,7 +28,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Debug Mode: ${{ inputs.debug_mode }}"
           PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
           if gh pr view $PR_NUMBER &> /dev/null; then
             echo "pr_exists=true" >> $GITHUB_OUTPUT
@@ -43,7 +42,7 @@ jobs:
 
   debug_mode:
     needs: [pulse_checks]
-    if: ${{ inputs.debug_mode == 'true' }}
+    if: ${{ inputs.debug_mode == true }}
     runs-on: ubuntu-latest
     steps:
       - name: Run detailed debug information
