@@ -20,8 +20,13 @@ declare -a skipped_active_pr=()
 declare -a skipped_current=()
 declare -a failed_deletions=()
 
+# Set defaults and handle inputs
+CLEANUP_MODE=${CLEANUP_MODE:-selective}
+PR_NUMBER=${PR_NUMBER:-""}
+
 echo "Starting branch cleanup process..."
-echo "Cleanup mode: ${CLEANUP_MODE:-selective}"
+echo "Cleanup mode: $CLEANUP_MODE"
+echo "PR number: ${PR_NUMBER:-none}"
 
 # Function to check if a branch matches any protected pattern
 is_protected() {
@@ -37,25 +42,38 @@ is_protected() {
 # Function to check if a PR exists for a branch
 has_active_pr() {
     local branch=$1
+    if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+        echo "Warning: GITHUB_TOKEN not set, skipping PR check"
+        return 1
+    }
+
     local response
     response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
         "https://api.github.com/repos/$GITHUB_REPOSITORY/pulls?head=$GITHUB_REPOSITORY:$branch&state=open")
     [[ $response != "[]" ]]
 }
 
-# Function to attempt branch deletion
+# Function to delete branch
 delete_branch() {
     local branch=$1
     local success=true
 
+    echo "Attempting to delete branch: $branch"
+
     # Try to delete local branch
-    if ! git branch -D "$branch" 2>/dev/null; then
+    if git branch -D "$branch" 2>/dev/null; then
+        echo "Deleted local branch: $branch"
+    else
+        echo "Failed to delete local branch: $branch"
         success=false
     fi
 
     # Try to delete remote branch if it exists
     if git ls-remote --heads origin "$branch" | grep -q "$branch"; then
-        if ! git push origin --delete "$branch" 2>/dev/null; then
+        if git push origin --delete "$branch" 2>/dev/null; then
+            echo "Deleted remote branch: $branch"
+        else
+            echo "Failed to delete remote branch: $branch"
             success=false
         fi
     fi
@@ -72,16 +90,19 @@ evaluate_branch() {
     local branch=$1
 
     if [[ "$branch" == "$current_branch" ]]; then
+        echo "Skipping current branch: $branch"
         skipped_current+=("$branch")
         return 1
     fi
 
     if is_protected "$branch"; then
+        echo "Skipping protected branch: $branch"
         skipped_protected+=("$branch")
         return 1
     fi
 
-    if [[ "${CLEANUP_MODE:-selective}" != "full" ]] && has_active_pr "$branch"; then
+    if [[ "$CLEANUP_MODE" != "full" ]] && has_active_pr "$branch"; then
+        echo "Skipping branch with active PR: $branch"
         skipped_active_pr+=("$branch")
         return 1
     fi
@@ -89,7 +110,63 @@ evaluate_branch() {
     return 0
 }
 
-# Print summary function
+# Main cleanup logic
+main() {
+    # Ensure we have latest remote information
+    git fetch --prune --all
+
+    # Get default and current branch
+    default_branch=$(git remote show origin | grep 'HEAD branch' | cut -d' ' -f5)
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+    echo "Default branch: $default_branch"
+    echo "Current branch: $current_branch"
+
+    # Handle specific PR if number is provided
+    if [[ -n "$PR_NUMBER" && "$PR_NUMBER" != "full-cleanup" ]]; then
+        echo "Processing specific PR #$PR_NUMBER"
+        branch=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" | \
+            jq -r '.head.ref')
+
+        if [[ -n "$branch" && "$branch" != "null" ]]; then
+            if evaluate_branch "$branch"; then
+                delete_branch "$branch"
+            fi
+        else
+            echo "Could not find branch for PR #$PR_NUMBER"
+        fi
+        return
+    fi
+
+    # Get all local branches
+    readarray -t local_branches < <(git branch --format="%(refname:short)")
+
+    # Process branches based on cleanup mode
+    if [[ "$CLEANUP_MODE" == "full" ]]; then
+        echo "Performing full cleanup..."
+        for branch in "${local_branches[@]}"; do
+            if evaluate_branch "$branch"; then
+                delete_branch "$branch"
+            fi
+        done
+    fi
+
+    # Always check for gone branches
+    echo "Checking for gone branches..."
+    readarray -t gone_branches < <(git branch -vv | grep ': gone]' | awk '{print $1}')
+
+    for branch in "${gone_branches[@]}"; do
+        if evaluate_branch "$branch"; then
+            delete_branch "$branch"
+        fi
+    done
+}
+
+# Run main function
+main
+
+# Print summary
 print_summary() {
     echo "🧹 Cleanup Summary:"
     echo "===================="
@@ -131,57 +208,6 @@ print_summary() {
     fi
 }
 
-# Ensure we have latest remote information
-git fetch --prune --all
-
-# Get default and current branch
-default_branch=$(git remote show origin | grep 'HEAD branch' | cut -d' ' -f5)
-current_branch=$(git rev-parse --abbrev-ref HEAD)
-
-echo "Default branch: $default_branch"
-echo "Current branch: $current_branch"
-
-# Handle specific PR if number is provided
-if [[ -n "${PR_NUMBER:-}" && "$PR_NUMBER" != "full-cleanup" ]]; then
-    echo "Processing specific PR #$PR_NUMBER"
-    branch=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-        "https://api.github.com/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" | \
-        jq -r '.head.ref')
-
-    if [[ -n "$branch" && "$branch" != "null" ]]; then
-        if evaluate_branch "$branch"; then
-            delete_branch "$branch"
-        fi
-    else
-        echo "Could not find branch for PR #$PR_NUMBER"
-    fi
-else
-    echo "Performing ${CLEANUP_MODE:-selective} cleanup..."
-
-    # Get all local branches
-    readarray -t local_branches < <(git branch --format="%(refname:short)")
-
-    # Process each local branch
-    for branch in "${local_branches[@]}"; do
-        if evaluate_branch "$branch"; then
-            if ! git ls-remote --heads origin "$branch" | grep -q "$branch"; then
-                delete_branch "$branch"
-            fi
-        fi
-    done
-
-    # Handle gone branches
-    echo "Checking for gone branches..."
-    readarray -t gone_branches < <(git branch -vv | grep ': gone]' | awk '{print $1}')
-
-    for branch in "${gone_branches[@]}"; do
-        if evaluate_branch "$branch"; then
-            delete_branch "$branch"
-        fi
-    done
-fi
-
-# Print summary
 print_summary
 
 # List remaining branches
