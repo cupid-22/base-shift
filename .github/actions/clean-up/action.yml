@@ -32,7 +32,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
         CLEANUP_MODE: ${{ env.CLEANUP_MODE }}
-        PR_NUMBER: ${{ inputs.pr_number }}
+      working-directory: .github/actions/clean-up
       shell: bash
 
 branding:
