@@ -72,7 +72,6 @@ jobs:
 
   debug_mode:
     needs: [pulse_checks]
-    if: ${{ (inputs.debug_mode == true || github.event.inputs.enable_debugging == true) }}
     runs-on: ubuntu-latest
     steps:
       - name: Run detailed debug information
@@ -84,20 +83,20 @@ jobs:
 
           echo ""
           echo "Condition satisfying 'opened_pr_workflows':"
-          echo "needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN' && (needs.pulse_checks.outputs.pr_action == 'opened' || needs.pulse_checks.outputs.pr_action == 'reopened')"
+          echo "${{ needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN' && (needs.pulse_checks.outputs.pr_action == 'opened' || needs.pulse_checks.outputs.pr_action == 'reopened') }}"
           echo "PR Exists: ${{ needs.pulse_checks.outputs.pr_exists }}"
           echo "PR State: ${{ needs.pulse_checks.outputs.pr_state }}"
           echo "PR Action: ${{ needs.pulse_checks.outputs.pr_action }}"
 
           echo ""
           echo "Condition for 'ongoing_pr_workflows':"
-          echo "needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN'"
+          echo "${{ needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN' }}"
           echo "PR Exists: ${{ needs.pulse_checks.outputs.pr_exists }}"
           echo "PR State: ${{ needs.pulse_checks.outputs.pr_state }}"
 
           echo ""
           echo "Condition for 'closed_pr_workflows':"
-          echo "needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'CLOSED' && github.event.pull_request.merged == true"
+          echo "${{ needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'CLOSED' && github.event.pull_request.merged == true }}"
           echo "PR Exists: ${{ needs.pulse_checks.outputs.pr_exists }}"
           echo "PR State: ${{ needs.pulse_checks.outputs.pr_state }}"
           echo "PR Merged: ${{ github.event.pull_request.merged }} (Expected: true)"
