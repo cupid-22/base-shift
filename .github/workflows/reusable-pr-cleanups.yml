@@ -6,9 +6,17 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: 'Pull request number'
+        description: 'Pull request number (leave empty for full cleanup)'
         required: false
-        type: number
+        type: string
+      action_type:
+        description: 'Type of cleanup'
+        required: true
+        type: choice
+        options:
+          - 'full_cleanup'
+          - 'pr_specific'
+        default: 'full_cleanup'
   workflow_call:
     inputs:
       pr_number:
@@ -29,45 +37,99 @@ on:
         type: string
 
 jobs:
-  check_conditions:
+  fetch_prs:
     runs-on: ubuntu-latest
     outputs:
+      pr_list: ${{ steps.get_prs.outputs.pr_list }}
+    steps:
+      - name: Get Open PRs
+        id: get_prs
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          PR_LIST=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls?state=open" | \
+            jq -r '.[] | select(.state=="open") | "\(.number): \(.title)"' | \
+            jq -R -s -c 'split("\n")[:-1]')
+          echo "pr_list=${PR_LIST}" >> $GITHUB_OUTPUT
+
+  check_conditions:
+    runs-on: ubuntu-latest
+    needs: fetch_prs
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
       pr_number: ${{ steps.check.outputs.pr_number }}
       is_scheduled: ${{ steps.check.outputs.is_scheduled }}
     steps:
       - name: Check conditions
         id: check
         run: |
-          # Check if this is a scheduled run or a PR-triggered run
-          PR_NUMBER="${{ github.event.pull_request.number || github.event.number || inputs.pr_number }}"
-
-          # Determine if it's a scheduled event
+          # Initialize variables
+          SHOULD_RUN="false"
           IS_SCHEDULED="false"
+          
+          # Determine run type
           if [ "${{ github.event_name }}" == "schedule" ]; then
             IS_SCHEDULED="true"
           fi
-
-          if [[ -z "$PR_NUMBER" && "$IS_SCHEDULED" != "true" ]]; then
-            echo "No PR number found and this is not a scheduled run. Exiting."
-            exit 1
+          
+          # Get PR number from various sources
+          PR_NUMBER="${{ github.event.pull_request.number || github.event.number || inputs.pr_number }}"
+          
+          # Handle action_type for workflow_dispatch
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            if [ "${{ inputs.action_type }}" == "full_cleanup" ]; then
+              PR_NUMBER=""
+              SHOULD_RUN="true"  # Allow full cleanup to run
+            else
+              # Check if PR number is valid for workflow_dispatch
+              if [ ! -z "$PR_NUMBER" ]; then
+                SHOULD_RUN="true"
+              fi
+            fi
+          # Handle pull_request events
+          elif [ "${{ github.event_name }}" == "pull_request" ] || [ "${{ github.event_name }}" == "pull_request_target" ]; then
+            # Check if PR exists and base branch matches criteria
+            if [ ! -z "$PR_NUMBER" ] && \
+               [ "${{ github.base_ref }}" == "main" -o "${{ github.base_ref }}" == "master" -o "${{ github.base_ref }}" == "develop" ]; then
+              SHOULD_RUN="true"
+            fi
+          # Handle scheduled events
+          elif [ "$IS_SCHEDULED" == "true" ]; then
+            # For scheduled runs, check if there are any PRs from fetch_prs
+            if [ ! -z "${{ needs.fetch_prs.outputs.pr_list }}" ]; then
+              SHOULD_RUN="true"
+              # Use the first PR from the list if no specific PR is provided
+              if [ -z "$PR_NUMBER" ]; then
+                PR_NUMBER=$(echo "${{ needs.fetch_prs.outputs.pr_list }}" | jq -r '.[0].number')
+              fi
+            fi
           fi
-
-          echo "pr_number=${PR_NUMBER:-'scheduled-run'}" >> $GITHUB_OUTPUT
+          
+          # Output the results
+          echo "should_run=${SHOULD_RUN}" >> $GITHUB_OUTPUT
+          echo "pr_number=${PR_NUMBER:-full-cleanup}" >> $GITHUB_OUTPUT
           echo "is_scheduled=${IS_SCHEDULED}" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Debug step
         run: |
+          echo "Should Run: ${{ steps.check.outputs.should_run }}"
           echo "PR Number: ${{ steps.check.outputs.pr_number }}"
           echo "Scheduled run: ${{ steps.check.outputs.is_scheduled }}"
+          echo "Event type: ${{ github.event_name }}"
           echo "pr_action: ${{ inputs.pr_action || 'not provided' }}"
-          echo "base_ref: ${{ inputs.base_ref || 'not provided' }}"
-          echo "head_ref: ${{ inputs.head_ref || 'not provided' }}"
+          echo "base_ref: ${{ inputs.base_ref || github.base_ref || 'not provided' }}"
+          echo "head_ref: ${{ inputs.head_ref || github.head_ref || 'not provided' }}"
+          echo "Available PRs: ${{ needs.fetch_prs.outputs.pr_list }}"
+          
+          # Additional debug information
+          echo "Event payload:"
+          echo "${{ toJSON(github.event) }}" | jq '.'
 
   prune-dead-branches:
-    needs: check_conditions
+    needs: [check_conditions]
     runs-on: ubuntu-latest
-    if: needs.check_conditions.outputs.pr_number != 'scheduled-run' || needs.check_conditions.outputs.is_scheduled == 'true'
+    if: needs.check_conditions.outputs.should_run == 'true'
     steps:
       - name: Checkout the repository with submodules
         uses: actions/checkout@v4
@@ -84,14 +146,83 @@ jobs:
       - name: Run Clean-up scripts
         uses: ./.github/actions/clean-up
         with:
-          repo_path: '.'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          pr_number: ${{ needs.check_conditions.outputs.pr_number }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          is_full_cleanup: ${{ github.event.inputs.is_full_cleanup == 'true' }}
 
-  misc-checks:
+  update-changelog:
     needs: check_conditions
     runs-on: ubuntu-latest
-    if: needs.check_conditions.outputs.pr_number != 'scheduled-run' || needs.check_conditions.outputs.is_scheduled == 'true'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Update CHANGELOG.md
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
+      run: |
+        # Ensure PR_NUMBER is set
+        if [ -z "$PR_NUMBER" ]; then
+          echo "Error: PR_NUMBER is not set. This workflow should only run on pull_request events."
+          exit 1
+        fi
+
+        # Setup git
+        git config user.name "GitHub Action"
+        git config user.email "action@github.com"
+
+        # Fetch and checkout the PR branch
+        PR_BRANCH="${{ github.head_ref }}"
+        git fetch origin $PR_BRANCH
+        git checkout $PR_BRANCH
+
+        # Get PR description
+        PR_DESCRIPTION=$(gh pr view $PR_NUMBER --json body --jq .body)
+        if [ $? -ne 0 ]; then
+          echo "Error: Failed to fetch PR description. Ensure the GITHUB_TOKEN has necessary permissions."
+          exit 1
+        fi
+
+        # Update CHANGELOG.md
+        if [ ! -f CHANGELOG.md ]; then
+          echo "# Changelog" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+        fi
+
+        # Prepend new entry to CHANGELOG.md
+        TEMP_FILE=$(mktemp)
+        echo "## PR #$PR_NUMBER" > $TEMP_FILE
+        echo "$PR_DESCRIPTION" >> $TEMP_FILE
+        echo "" >> $TEMP_FILE
+        echo "" >> $TEMP_FILE
+        cat CHANGELOG.md >> $TEMP_FILE
+        mv $TEMP_FILE CHANGELOG.md
+
+        # Commit changes
+        git add CHANGELOG.md
+        git commit -m "Update CHANGELOG.md for PR #$PR_NUMBER"
+
+        # Push changes to the PR branch
+        if ! git push origin $PR_BRANCH; then
+          echo "Error: Failed to push changes. Check repository permissions."
+          exit 1
+        fi
+
+        # Add a comment to the PR
+        if ! gh pr comment $PR_NUMBER --body "I've updated the CHANGELOG.md in this PR. Please review the changes."; then
+          echo "Error: Failed to add comment to PR. Check repository permissions."
+          exit 1
+        fi
+
+  misc-checks:
+    needs: [check_conditions]
+    runs-on: ubuntu-latest
+    if: needs.check_conditions.outputs.should_run == 'true'
     steps:
       - name: Checkout the repository with submodules
         uses: actions/checkout@v4

@@ -27,7 +27,32 @@ on:
         type: string
 
 jobs:
+  check_conditions:
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.check.outputs.pr_number }}
+    steps:
+      - name: Check conditions
+        id: check
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number || github.event.number || inputs.pr_number }}"
+
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "No PR number found. Exiting."
+            exit 1
+          fi
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Debug step
+        run: |
+          echo "PR Number: ${{ steps.check.outputs.pr_number }}"
+          echo "pr_action: ${{ inputs.pr_action }}"
+          echo "base_ref: ${{ inputs.base_ref }}"
+          echo "head_ref: ${{ inputs.head_ref }}"
+
   lint:
+    needs: check_conditions
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -46,7 +71,130 @@ jobs:
             gh pr comment $PR_NUMBER --body "$COMMENT"
           fi
 
+  pr-labeler:
+    runs-on: ubuntu-latest
+    needs: check_conditions
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Fetch all branches
+        run: |
+          git fetch --no-tags --prune origin
+          git fetch origin ${HEAD_REF}:${HEAD_REF} || git fetch origin pull/${{ needs.check_conditions.outputs.pr_number }}/head:${HEAD_REF}
+          git fetch origin ${BASE_REF}:${BASE_REF}
+        env:
+          HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
+          BASE_REF: ${{ inputs.base_ref || github.base_ref }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+      - name: Calculate lines of code
+        id: diff
+        env:
+          BASE_REF: ${{ inputs.base_ref || github.base_ref }}
+          HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          # Ensure refs exist and get actual line count
+          DIFF_STATS=$(git diff --numstat ${BASE_REF}...${HEAD_REF} | awk '{sum += $1 + $2} END {print sum}')
+          echo "lines_of_code=${DIFF_STATS:-0}" >> $GITHUB_ENV
+          echo "Total lines changed: ${DIFF_STATS:-0}"
+
+      - name: Determine PR size label
+        id: determine-label
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ ${{ env.lines_of_code }} -eq 0 ]; then
+            echo "label=no-changes" >> $GITHUB_OUTPUT
+            echo "color=CCCCCC" >> $GITHUB_OUTPUT
+          elif [ ${{ env.lines_of_code }} -lt 10 ]; then
+            echo "label=size/XS" >> $GITHUB_OUTPUT
+            echo "color=87CEFA" >> $GITHUB_OUTPUT
+          elif [ ${{ env.lines_of_code }} -lt 50 ]; then
+            echo "label=size/S" >> $GITHUB_OUTPUT
+            echo "color=66CDAA" >> $GITHUB_OUTPUT
+          elif [ ${{ env.lines_of_code }} -lt 100 ]; then
+            echo "label=size/M" >> $GITHUB_OUTPUT
+            echo "color=FFFF00" >> $GITHUB_OUTPUT
+          elif [ ${{ env.lines_of_code }} -lt 500 ]; then
+            echo "label=size/L" >> $GITHUB_OUTPUT
+            echo "color=FFA500" >> $GITHUB_OUTPUT
+          else
+            echo "label=size/XL" >> $GITHUB_OUTPUT
+            echo "color=FF4500" >> $GITHUB_OUTPUT
+          fi
+      - name: Check existing labels and remove if different
+        id: check-labels
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
+          NEW_LABEL: ${{ steps.determine-label.outputs.label }}
+        run: |
+          # Get all existing labels
+          LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+          
+          # Initialize flag for whether we need to make changes
+          NEEDS_UPDATE="false"
+          HAS_SIZE_LABEL="false"
+          
+          # Check existing labels
+          echo "$LABELS" | while read -r label; do
+            if [[ "$label" =~ ^(size/|no-changes$) ]]; then
+              HAS_SIZE_LABEL="true"
+              if [[ "$label" != "$NEW_LABEL" ]]; then
+                echo "Removing different size label: $label"
+                gh pr edit $PR_NUMBER --remove-label "$label" || true
+                NEEDS_UPDATE="true"
+              fi
+            fi
+          done
+          
+          # If we have no size label or we removed a different one, we need to add the new one
+          if [[ "$HAS_SIZE_LABEL" == "false" || "$NEEDS_UPDATE" == "true" ]]; then
+            echo "needs_label_update=true" >> $GITHUB_OUTPUT
+          else
+            echo "needs_label_update=false" >> $GITHUB_OUTPUT
+            echo "Label '$NEW_LABEL' already exists on PR, skipping label operations"
+          fi
+
+      - name: Create label if it doesn't exist
+        if: steps.check-labels.outputs.needs_label_update == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "${{ steps.determine-label.outputs.label }}" \
+            --color "${{ steps.determine-label.outputs.color }}" \
+            --description "PR size: ${{ steps.determine-label.outputs.label }}" \
+            || true
+
+      - name: Add new size label
+        if: steps.check-labels.outputs.needs_label_update == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
+        run: |
+          gh pr edit $PR_NUMBER --add-label "${{ steps.determine-label.outputs.label }}"
+
+      - name: Debug information
+        run: |
+          echo "Base Ref: ${BASE_REF}"
+          echo "Head Ref: ${HEAD_REF}"
+          echo "PR Number: ${PR_NUMBER}"
+          echo "Lines of code changed: ${lines_of_code}"
+          echo "Selected label: ${{ steps.determine-label.outputs.label }}"
+          echo "Label color: ${{ steps.determine-label.outputs.color }}"
+          echo "Needs label update: ${{ steps.check-labels.outputs.needs_label_update }}"
+        env:
+          BASE_REF: ${{ inputs.base_ref || github.base_ref }}
+          HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
+          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
+
   test:
+    needs: check_conditions
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

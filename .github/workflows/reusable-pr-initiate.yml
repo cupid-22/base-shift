@@ -30,98 +30,68 @@ jobs:
   check_conditions:
     runs-on: ubuntu-latest
     outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
       pr_number: ${{ steps.check.outputs.pr_number }}
     steps:
       - name: Check conditions
         id: check
         run: |
+          # Initialize variables
+          SHOULD_RUN="false"
+          
+          # Get PR number from various sources
           PR_NUMBER="${{ github.event.pull_request.number || github.event.number || inputs.pr_number }}"
           
+          # Basic validation
           if [[ -z "$PR_NUMBER" ]]; then
             echo "No PR number found. Exiting."
             exit 1
           fi
-          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          
+          # Check workflow_dispatch conditions
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            if [ ! -z "$PR_NUMBER" ]; then
+              SHOULD_RUN="true"
+            fi
+          # Check workflow_call conditions
+          elif [ "${{ github.event_name }}" == "workflow_call" ]; then
+            if [ ! -z "$PR_NUMBER" ] && [ ! -z "${{ inputs.pr_action }}" ]; then
+              SHOULD_RUN="true"
+            fi
+          fi
+          
+          # Output the results
+          echo "should_run=${SHOULD_RUN}" >> $GITHUB_OUTPUT
+          echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Debug step
         run: |
+          echo "Should Run: ${{ steps.check.outputs.should_run }}"
           echo "PR Number: ${{ steps.check.outputs.pr_number }}"
-          echo "pr_action: ${{ inputs.pr_action }}"
-          echo "base_ref: ${{ inputs.base_ref }}"
-          echo "head_ref: ${{ inputs.head_ref }}"
-
-  pr-labeler:
-    runs-on: ubuntu-latest
-    needs: check_conditions
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Calculate lines of code
-        id: diff
-        env:
-          BASE_REF: ${{ inputs.base_ref || github.base_ref }}
-          HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
-        run: |
-          LOC=$(git diff --shortstat origin/${BASE_REF}...${HEAD_REF} | awk '{print $1}')
-          echo "lines_of_code=${LOC:-0}" >> $GITHUB_ENV
-
-      - name: Determine PR size label
-        if: ${{ env.lines_of_code }}
-        id: determine-label
-        run: |
-          if [ ${{ env.lines_of_code }} -eq 0 ]; then
-            echo "label=no-changes" >> $GITHUB_OUTPUT
-            echo "color=CCCCCC" >> $GITHUB_OUTPUT
-          elif [ ${{ env.lines_of_code }} -lt 10 ]; then
-            echo "label=size/XS" >> $GITHUB_OUTPUT
-            echo "color=87CEFA" >> $GITHUB_OUTPUT
-          elif [ ${{ env.lines_of_code }} -lt 50 ]; then
-            echo "label=size/S" >> $GITHUB_OUTPUT
-            echo "color=66CDAA" >> $GITHUB_OUTPUT
-          elif [ ${{ env.lines_of_code }} -lt 100 ]; then
-            echo "label=size/M" >> $GITHUB_OUTPUT
-            echo "color=FFFF00" >> $GITHUB_OUTPUT
-          elif [ ${{ env.lines_of_code }} -lt 500 ]; then
-            echo "label=size/L" >> $GITHUB_OUTPUT
-            echo "color=FFA500" >> $GITHUB_OUTPUT
-          else
-            echo "label=size/XL" >> $GITHUB_OUTPUT
-            echo "color=FF4500" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Check existing labels
-        id: check-labels
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
-        run: |
-          LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
-          if echo "$LABELS" | grep -q "${{ steps.determine-label.outputs.label }}"; then
-            echo "label_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "label_exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Create or update label
-        if: steps.check-labels.outputs.label_exists == 'false'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
-        run: |
-          gh label create "${{ steps.determine-label.outputs.label }}" \
-            --color "${{ steps.determine-label.outputs.color }}" \
-            --description "PR size: ${{ steps.determine-label.outputs.label }}" \
-            || true
-          gh pr edit $PR_NUMBER --add-label "${{ steps.determine-label.outputs.label }}"
+          echo "Event type: ${{ github.event_name }}"
+          echo "PR Action: ${{ inputs.pr_action || 'not provided' }}"
+          echo "Base ref: ${{ inputs.base_ref || 'not provided' }}"
+          echo "Head ref: ${{ inputs.head_ref || 'not provided' }}"
+          
+          # Additional debug information
+          echo "Event context:"
+          echo "  Event name: ${{ github.event_name }}"
+          echo "  Input PR number: ${{ inputs.pr_number || 'not provided' }}"
+          echo "  Event PR number: ${{ github.event.pull_request.number || github.event.number || 'not provided' }}"
 
   pr-assign-reviewer:
     needs: check_conditions
     runs-on: ubuntu-latest
+    if: needs.check_conditions.outputs.should_run == 'true'
     steps:
+      - name: Debug Information
+        run: |
+          echo "PR Number: ${{ needs.check_conditions.outputs.pr_number }}"
+          echo "Should Run: ${{ needs.check_conditions.outputs.should_run }}"
+          echo "Base Branch: ${{ needs.check_conditions.outputs.base_branch }}"
+          echo "Event Type: ${{ github.event_name }}"
+
       - name: Checkout the repository
         uses: actions/checkout@v4
         with:
@@ -137,7 +107,11 @@ jobs:
           EXISTING_REVIEWERS=$(gh pr view $PR_NUMBER --json reviewRequests --jq '.reviewRequests[].login')
 
           if [[ ! $EXISTING_REVIEWERS =~ $REVIEWER ]]; then
-            gh pr edit $PR_NUMBER --add-reviewer "$REVIEWER"
+            if ! gh pr edit $PR_NUMBER --add-reviewer "$REVIEWER"; then
+              echo "Failed to assign reviewer"
+              exit 1
+            fi
+            echo "Successfully assigned reviewer: $REVIEWER"
           else
             echo "Reviewer $REVIEWER is already assigned."
           fi
@@ -145,7 +119,15 @@ jobs:
   pr-description:
     runs-on: ubuntu-latest
     needs: check_conditions
+    if: needs.check_conditions.outputs.should_run == 'true'
     steps:
+      - name: Debug Information
+        run: |
+          echo "PR Number: ${{ needs.check_conditions.outputs.pr_number }}"
+          echo "Should Run: ${{ needs.check_conditions.outputs.should_run }}"
+          echo "Base Branch: ${{ needs.check_conditions.outputs.base_branch }}"
+          echo "Event Type: ${{ github.event_name }}"
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -154,96 +136,49 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
         run: |
-          PR_BODY=$(cat << EOF
+          # First check if PR already has a description
+          CURRENT_BODY=$(gh pr view $PR_NUMBER --json body --jq '.body')
+          
+          if [[ -z "$CURRENT_BODY" ]]; then
+            PR_BODY=$(cat << 'EOF'
+          # Pull Request Details 🚀
+          
           ## Change Description
-          <!-- Please provide a brief description of the changes in this PR, along with the ticket link -->
+          <!-- Please provide a detailed description of your changes -->
+          
+          ## Ticket Details
+          **Jira Ticket:** [TICKET-XXX](https://your-jira-url/TICKET-XXX)
+          **Type:** Feature/Bug/Enhancement
           
           ## Type of Change
-          <!-- Please select the appropriate options -->
-          - [ ] Bug fix
-          - [ ] New feature
-          - [ ] Breaking change
-          - [ ] Documentation update
+          - [ ] 🐛 Bug fix
+          - [ ] ✨ New feature
+          - [ ] 💥 Breaking change
+          - [ ] 📚 Documentation update
           
-          ## Linters and Checks
-          <!-- Please select the linters and checks that have been run -->
-          - [ ] ESLint
-          - [ ] Prettier
-          - [ ] Unit Tests
-          - [ ] Integration Tests
+          ## Quality Checks
+          - [ ] ✅ ESLint
+          - [ ] 🎨 Prettier
+          - [ ] 🧪 Unit Tests
+          - [ ] 🔄 Integration Tests
           
           ## Additional Notes
-          <!-- Any additional information that reviewers should be aware of -->
+          <!-- Add any additional notes, considerations, or context about the changes -->
           
+          ---
+          > **Remember to:**
+          > - Link the Board ticket
+          > - Update documentation if needed
+          > - Add/update tests as needed
           EOF
           )
-          gh pr edit $PR_NUMBER --body "$PR_BODY"
-
-  update-changelog:
-    needs: check_conditions
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Update CHANGELOG.md
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
-      run: |
-        # Ensure PR_NUMBER is set
-        if [ -z "$PR_NUMBER" ]; then
-          echo "Error: PR_NUMBER is not set. This workflow should only run on pull_request events."
-          exit 1
-        fi
-
-        # Setup git
-        git config user.name "GitHub Action"
-        git config user.email "action@github.com"
-
-        # Fetch and checkout the PR branch
-        PR_BRANCH="${{ github.head_ref }}"
-        git fetch origin $PR_BRANCH
-        git checkout $PR_BRANCH
-
-        # Get PR description
-        PR_DESCRIPTION=$(gh pr view $PR_NUMBER --json body --jq .body)
-        if [ $? -ne 0 ]; then
-          echo "Error: Failed to fetch PR description. Ensure the GITHUB_TOKEN has necessary permissions."
-          exit 1
-        fi
-
-        # Update CHANGELOG.md
-        if [ ! -f CHANGELOG.md ]; then
-          echo "# Changelog" > CHANGELOG.md
-          echo "" >> CHANGELOG.md
-        fi
-
-        # Prepend new entry to CHANGELOG.md
-        TEMP_FILE=$(mktemp)
-        echo "## PR #$PR_NUMBER" > $TEMP_FILE
-        echo "$PR_DESCRIPTION" >> $TEMP_FILE
-        echo "" >> $TEMP_FILE
-        echo "" >> $TEMP_FILE
-        cat CHANGELOG.md >> $TEMP_FILE
-        mv $TEMP_FILE CHANGELOG.md
-
-        # Commit changes
-        git add CHANGELOG.md
-        git commit -m "Update CHANGELOG.md for PR #$PR_NUMBER"
-
-        # Push changes to the PR branch
-        if ! git push origin $PR_BRANCH; then
-          echo "Error: Failed to push changes. Check repository permissions."
-          exit 1
-        fi
-
-        # Add a comment to the PR
-        if ! gh pr comment $PR_NUMBER --body "I've updated the CHANGELOG.md in this PR. Please review the changes."; then
-          echo "Error: Failed to add comment to PR. Check repository permissions."
-          exit 1
-        fi
+          
+            # Update the PR body with the template
+            if ! gh pr edit $PR_NUMBER --body "$PR_BODY"; then
+              echo "Failed to update PR description"
+              exit 1
+            fi
+            echo "Successfully added PR template"
+          else
+            echo "PR already has a description. Skipping template addition."
+          fi
