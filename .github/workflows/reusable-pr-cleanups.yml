@@ -64,7 +64,7 @@ jobs:
         id: check
         run: |
           # Initialize variables
-          SHOULD_RUN="true"
+          SHOULD_RUN="false"
           IS_SCHEDULED="false"
           
           # Determine run type
@@ -79,9 +79,33 @@ jobs:
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             if [ "${{ inputs.action_type }}" == "full_cleanup" ]; then
               PR_NUMBER=""
+              SHOULD_RUN="true"  # Allow full cleanup to run
+            else
+              # Check if PR number is valid for workflow_dispatch
+              if [ ! -z "$PR_NUMBER" ]; then
+                SHOULD_RUN="true"
+              fi
+            fi
+          # Handle pull_request events
+          elif [ "${{ github.event_name }}" == "pull_request" ] || [ "${{ github.event_name }}" == "pull_request_target" ]; then
+            # Check if PR exists and base branch matches criteria
+            if [ ! -z "$PR_NUMBER" ] && \
+               [ "${{ github.base_ref }}" == "main" -o "${{ github.base_ref }}" == "master" -o "${{ github.base_ref }}" == "develop" ]; then
+              SHOULD_RUN="true"
+            fi
+          # Handle scheduled events
+          elif [ "$IS_SCHEDULED" == "true" ]; then
+            # For scheduled runs, check if there are any PRs from fetch_prs
+            if [ ! -z "${{ needs.fetch_prs.outputs.pr_list }}" ]; then
+              SHOULD_RUN="true"
+              # Use the first PR from the list if no specific PR is provided
+              if [ -z "$PR_NUMBER" ]; then
+                PR_NUMBER=$(echo "${{ needs.fetch_prs.outputs.pr_list }}" | jq -r '.[0].number')
+              fi
             fi
           fi
           
+          # Output the results
           echo "should_run=${SHOULD_RUN}" >> $GITHUB_OUTPUT
           echo "pr_number=${PR_NUMBER:-full-cleanup}" >> $GITHUB_OUTPUT
           echo "is_scheduled=${IS_SCHEDULED}" >> $GITHUB_OUTPUT
@@ -92,10 +116,15 @@ jobs:
           echo "Should Run: ${{ steps.check.outputs.should_run }}"
           echo "PR Number: ${{ steps.check.outputs.pr_number }}"
           echo "Scheduled run: ${{ steps.check.outputs.is_scheduled }}"
+          echo "Event type: ${{ github.event_name }}"
           echo "pr_action: ${{ inputs.pr_action || 'not provided' }}"
-          echo "base_ref: ${{ inputs.base_ref || 'not provided' }}"
-          echo "head_ref: ${{ inputs.head_ref || 'not provided' }}"
+          echo "base_ref: ${{ inputs.base_ref || github.base_ref || 'not provided' }}"
+          echo "head_ref: ${{ inputs.head_ref || github.head_ref || 'not provided' }}"
           echo "Available PRs: ${{ needs.fetch_prs.outputs.pr_list }}"
+          
+          # Additional debug information
+          echo "Event payload:"
+          echo "${{ toJSON(github.event) }}" | jq '.'
 
   prune-dead-branches:
     needs: [check_conditions]

@@ -30,19 +30,55 @@ jobs:
   check_conditions:
     runs-on: ubuntu-latest
     outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
       pr_number: ${{ steps.check.outputs.pr_number }}
     steps:
       - name: Check conditions
         id: check
         run: |
+          # Initialize variables
+          SHOULD_RUN="false"
+          
+          # Get PR number from various sources
           PR_NUMBER="${{ github.event.pull_request.number || github.event.number || inputs.pr_number }}"
           
+          # Basic validation
           if [[ -z "$PR_NUMBER" ]]; then
             echo "No PR number found. Exiting."
             exit 1
           fi
-          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          
+          # Check workflow_dispatch conditions
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            if [ ! -z "$PR_NUMBER" ]; then
+              SHOULD_RUN="true"
+            fi
+          # Check workflow_call conditions
+          elif [ "${{ github.event_name }}" == "workflow_call" ]; then
+            if [ ! -z "$PR_NUMBER" ] && [ ! -z "${{ inputs.pr_action }}" ]; then
+              SHOULD_RUN="true"
+            fi
+          fi
+          
+          # Output the results
+          echo "should_run=${SHOULD_RUN}" >> $GITHUB_OUTPUT
+          echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
         shell: bash
+
+      - name: Debug step
+        run: |
+          echo "Should Run: ${{ steps.check.outputs.should_run }}"
+          echo "PR Number: ${{ steps.check.outputs.pr_number }}"
+          echo "Event type: ${{ github.event_name }}"
+          echo "PR Action: ${{ inputs.pr_action || 'not provided' }}"
+          echo "Base ref: ${{ inputs.base_ref || 'not provided' }}"
+          echo "Head ref: ${{ inputs.head_ref || 'not provided' }}"
+          
+          # Additional debug information
+          echo "Event context:"
+          echo "  Event name: ${{ github.event_name }}"
+          echo "  Input PR number: ${{ inputs.pr_number || 'not provided' }}"
+          echo "  Event PR number: ${{ github.event.pull_request.number || github.event.number || 'not provided' }}"
 
   pr-assign-reviewer:
     needs: check_conditions
