@@ -27,7 +27,32 @@ on:
         type: string
 
 jobs:
+  check_conditions:
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.check.outputs.pr_number }}
+    steps:
+      - name: Check conditions
+        id: check
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number || github.event.number || inputs.pr_number }}"
+
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "No PR number found. Exiting."
+            exit 1
+          fi
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Debug step
+        run: |
+          echo "PR Number: ${{ steps.check.outputs.pr_number }}"
+          echo "pr_action: ${{ inputs.pr_action }}"
+          echo "base_ref: ${{ inputs.base_ref }}"
+          echo "head_ref: ${{ inputs.head_ref }}"
+
   lint:
+    needs: check_conditions
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -117,6 +142,7 @@ jobs:
           gh pr edit $PR_NUMBER --add-label "${{ steps.determine-label.outputs.label }}"
 
   test:
+    needs: check_conditions
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
