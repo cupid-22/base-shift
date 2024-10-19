@@ -207,11 +207,6 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
 
-      - name: Handle Git Submodules
-        uses: ./.github/actions/handle-submodules
-        with:
-          branch: ${{ inputs.head_ref || github.head_ref || 'main' }}
-
       - name: Check for large file post merge
         run: |
           # Set size limit (in bytes)
