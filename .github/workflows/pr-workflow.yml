@@ -149,7 +149,7 @@ jobs:
 
   ongoing_pr_workflows:
     needs: pulse_checks
-    if: needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN'
+    if: needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN' && needs.pulse_checks.outputs.pr_action != 'CLOSED'
     uses: ./.github/workflows/reusable-pr-ongoing.yml
     with:
       pr_number: ${{ github.event.pull_request.number || inputs.pr_number }}
