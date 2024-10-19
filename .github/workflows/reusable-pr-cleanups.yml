@@ -237,7 +237,7 @@ jobs:
       - name: Handle Git Submodules
         uses: ./.github/actions/handle-submodules
         with:
-          branch: ${{ inputs.head_ref || github.head_ref || 'main' }}
+          branch: ${{ inputs.base_ref || github.base_ref || 'main' }}
 
       - name: Run Clean-up scripts
         uses: ./.github/actions/clean-up
