@@ -47,11 +47,19 @@ jobs:
           PR_NUMBER="${{ github.event.pull_request.number || inputs.pr_number }}"
           echo "Checking PR #$PR_NUMBER"
           
+          # Determine PR action from event context or input
+          PR_ACTION="unknown"
+          if [ "${{ github.event_name }}" == "pull_request" ] || [ "${{ github.event_name }}" == "pull_request_target" ]; then
+            PR_ACTION="${{ github.event.action }}"
+          elif [ ! -z "${{ inputs.pr_action }}" ]; then
+            PR_ACTION="${{ inputs.pr_action }}"
+          fi
+          
           # Attempt to view the PR and capture the output
-          PR_VIEW_OUTPUT=$(gh pr view $PR_NUMBER 2>&1 || true)  # Prevent script from exiting on failure
+          PR_VIEW_OUTPUT=$(gh pr view $PR_NUMBER 2>&1 || true)
           echo "gh pr view output: $PR_VIEW_OUTPUT"
-
-          # Check if the output indicates that the PR was not found
+  
+          # Check if the PR exists
           if echo "$PR_VIEW_OUTPUT" | grep -q 'not found'; then
             echo "PR does not exist or is inaccessible"
             echo "pr_exists=false" >> $GITHUB_OUTPUT
@@ -61,18 +69,37 @@ jobs:
             echo "PR exists and details are available"
             echo "pr_exists=true" >> $GITHUB_OUTPUT
           
-            # Extract the PR state using string manipulation
+            # Extract the PR state
             STATE=$(echo "$PR_VIEW_OUTPUT" | grep -oP 'state:\s+\K\w+')
             if [ -z "$STATE" ]; then
                 STATE="unknown"
             fi
             echo "pr_state=$STATE" >> $GITHUB_OUTPUT
-            echo "pr_action=synchronize" >> $GITHUB_OUTPUT
+            
+            # Set PR action based on context
+            if [ "$PR_ACTION" == "opened" ] || [ "$PR_ACTION" == "reopened" ]; then
+              echo "PR was opened or reopened"
+              echo "pr_action=$PR_ACTION" >> $GITHUB_OUTPUT
+            elif [ "$PR_ACTION" == "synchronize" ] || [ "$PR_ACTION" == "edited" ]; then
+              echo "PR was synchronized or edited"
+              echo "pr_action=synchronize" >> $GITHUB_OUTPUT
+            elif [ "$PR_ACTION" == "closed" ]; then
+              echo "PR was closed"
+              echo "pr_action=closed" >> $GITHUB_OUTPUT
+            else
+              echo "Using default synchronize action"
+              echo "pr_action=synchronize" >> $GITHUB_OUTPUT
+            fi
           fi
+
+          # Debug output
+          echo "Debug: PR Action detected as: $PR_ACTION"
+          echo "Debug: Event name: ${{ github.event_name }}"
+          echo "Debug: Event action: ${{ github.event.action }}"
+          echo "Debug: Input action: ${{ inputs.pr_action }}"
 
   debug_mode:
     needs: [pulse_checks]
-    if: ${{ inputs.debug_mode == true }}
     runs-on: ubuntu-latest
     steps:
       - name: Run detailed debug information
@@ -81,23 +108,30 @@ jobs:
         run: |
           echo ""
           echo "Debug Info:"
-
+          
+          echo ""
+          echo "Event Context:"
+          echo "Event Name: ${{ github.event_name }}"
+          echo "Event Action: ${{ github.event.action }}"
+          echo "Input PR Action: ${{ inputs.pr_action }}"
+  
           echo ""
           echo "Condition satisfying 'opened_pr_workflows':"
-          echo "needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN' && (needs.pulse_checks.outputs.pr_action == 'opened' || needs.pulse_checks.outputs.pr_action == 'reopened')"
+          echo "${{ needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN' && (needs.pulse_checks.outputs.pr_action == 'opened' || needs.pulse_checks.outputs.pr_action == 'reopened') }}"
           echo "PR Exists: ${{ needs.pulse_checks.outputs.pr_exists }}"
           echo "PR State: ${{ needs.pulse_checks.outputs.pr_state }}"
           echo "PR Action: ${{ needs.pulse_checks.outputs.pr_action }}"
-
+          echo "Is Open/Reopen: ${{ needs.pulse_checks.outputs.pr_action == 'opened' || needs.pulse_checks.outputs.pr_action == 'reopened' }}"
+  
           echo ""
           echo "Condition for 'ongoing_pr_workflows':"
-          echo "needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN'"
+          echo "${{ needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN' }}"
           echo "PR Exists: ${{ needs.pulse_checks.outputs.pr_exists }}"
           echo "PR State: ${{ needs.pulse_checks.outputs.pr_state }}"
-
+          
           echo ""
           echo "Condition for 'closed_pr_workflows':"
-          echo "needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'CLOSED' && github.event.pull_request.merged == true"
+          echo "${{ needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'CLOSED' && github.event.pull_request.merged == true }}"
           echo "PR Exists: ${{ needs.pulse_checks.outputs.pr_exists }}"
           echo "PR State: ${{ needs.pulse_checks.outputs.pr_state }}"
           echo "PR Merged: ${{ github.event.pull_request.merged }} (Expected: true)"
@@ -115,7 +149,7 @@ jobs:
 
   ongoing_pr_workflows:
     needs: pulse_checks
-    if: needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN'
+    if: needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_state == 'OPEN' && needs.pulse_checks.outputs.pr_action != 'CLOSED'
     uses: ./.github/workflows/reusable-pr-ongoing.yml
     with:
       pr_number: ${{ github.event.pull_request.number || inputs.pr_number }}

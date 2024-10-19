@@ -48,18 +48,19 @@ jobs:
             exit 1
           fi
           
-          # Check workflow_dispatch conditions
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            if [ ! -z "$PR_NUMBER" ]; then
-              SHOULD_RUN="true"
-            fi
-          # Check workflow_call conditions
-          elif [ "${{ github.event_name }}" == "workflow_call" ]; then
-            if [ ! -z "$PR_NUMBER" ] && [ ! -z "${{ inputs.pr_action }}" ]; then
-              SHOULD_RUN="true"
-            fi
-          fi
+          # Check if the event is 'pull_request'
+          if [ "${{ github.event_name }}" == "pull_request" ] && [ ! -z "${{ github.event.action }}" ]; then
+            SHOULD_RUN="true"
           
+          # Check workflow_dispatch conditions
+          elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            SHOULD_RUN="true"
+          
+          # Check workflow_call conditions
+          elif [ "${{ github.event_name }}" == "workflow_call" ] && [ ! -z "${{ inputs.pr_action }}" ]; then
+            SHOULD_RUN="true"
+          fi
+
           # Output the results
           echo "should_run=${SHOULD_RUN}" >> $GITHUB_OUTPUT
           echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
