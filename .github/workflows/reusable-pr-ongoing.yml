@@ -79,6 +79,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Fetch all branches
+        run: |
+          git fetch --no-tags --prune origin
+          git fetch origin ${HEAD_REF}:${HEAD_REF} || git fetch origin pull/${{ needs.check_conditions.outputs.pr_number }}/head:${HEAD_REF}
+          git fetch origin ${BASE_REF}:${BASE_REF}
+        env:
+          HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
+          BASE_REF: ${{ inputs.base_ref || github.base_ref }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 
       - name: Calculate lines of code
         id: diff
@@ -87,14 +98,24 @@ jobs:
           HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          LOC=$(git diff --shortstat origin/${BASE_REF}...${HEAD_REF} | awk '{print $1}')
+          # Ensure refs exist
+          if ! git rev-parse --verify ${BASE_REF} >/dev/null 2>&1; then
+            echo "Error: Base ref ${BASE_REF} not found"
+            exit 1
+          fi
+          
+          if ! git rev-parse --verify ${HEAD_REF} >/dev/null 2>&1; then
+            echo "Error: Head ref ${HEAD_REF} not found"
+            exit 1
+          fi
+          
+          LOC=$(git diff --shortstat ${BASE_REF}...${HEAD_REF} | awk '{print $1}')
           echo "lines_of_code=${LOC:-0}" >> $GITHUB_ENV
 
       - name: Determine PR size label
-#        if: ${{ env.lines_of_code }}
+        id: determine-label
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        id: determine-label
         run: |
           if [ ${{ env.lines_of_code }} -eq 0 ]; then
             echo "label=no-changes" >> $GITHUB_OUTPUT
@@ -141,6 +162,18 @@ jobs:
             || true
           gh pr edit $PR_NUMBER --add-label "${{ steps.determine-label.outputs.label }}"
 
+      - name: Debug information
+        run: |
+          echo "Base Ref: ${BASE_REF}"
+          echo "Head Ref: ${HEAD_REF}"
+          echo "PR Number: ${PR_NUMBER}"
+          echo "Lines of code: ${lines_of_code}"
+          echo "Selected label: ${{ steps.determine-label.outputs.label }}"
+          echo "Label color: ${{ steps.determine-label.outputs.color }}"
+        env:
+          BASE_REF: ${{ inputs.base_ref || github.base_ref }}
+          HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
+          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
   test:
     needs: check_conditions
     runs-on: ubuntu-latest
