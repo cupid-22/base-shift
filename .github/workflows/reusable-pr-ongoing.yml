@@ -127,24 +127,42 @@ jobs:
             echo "label=size/XL" >> $GITHUB_OUTPUT
             echo "color=FF4500" >> $GITHUB_OUTPUT
           fi
-
-      - name: Remove existing size labels
+      - name: Check existing labels and remove if different
+        id: check-labels
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
+          NEW_LABEL: ${{ steps.determine-label.outputs.label }}
         run: |
           # Get all existing labels
           LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
           
-          # Remove any existing size labels
+          # Initialize flag for whether we need to make changes
+          NEEDS_UPDATE="false"
+          HAS_SIZE_LABEL="false"
+          
+          # Check existing labels
           echo "$LABELS" | while read -r label; do
             if [[ "$label" =~ ^(size/|no-changes$) ]]; then
-              echo "Removing label: $label"
-              gh pr edit $PR_NUMBER --remove-label "$label" || true
+              HAS_SIZE_LABEL="true"
+              if [[ "$label" != "$NEW_LABEL" ]]; then
+                echo "Removing different size label: $label"
+                gh pr edit $PR_NUMBER --remove-label "$label" || true
+                NEEDS_UPDATE="true"
+              fi
             fi
           done
+          
+          # If we have no size label or we removed a different one, we need to add the new one
+          if [[ "$HAS_SIZE_LABEL" == "false" || "$NEEDS_UPDATE" == "true" ]]; then
+            echo "needs_label_update=true" >> $GITHUB_OUTPUT
+          else
+            echo "needs_label_update=false" >> $GITHUB_OUTPUT
+            echo "Label '$NEW_LABEL' already exists on PR, skipping label operations"
+          fi
 
       - name: Create label if it doesn't exist
+        if: steps.check-labels.outputs.needs_label_update == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -154,6 +172,7 @@ jobs:
             || true
 
       - name: Add new size label
+        if: steps.check-labels.outputs.needs_label_update == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
@@ -168,10 +187,12 @@ jobs:
           echo "Lines of code changed: ${lines_of_code}"
           echo "Selected label: ${{ steps.determine-label.outputs.label }}"
           echo "Label color: ${{ steps.determine-label.outputs.color }}"
+          echo "Needs label update: ${{ steps.check-labels.outputs.needs_label_update }}"
         env:
           BASE_REF: ${{ inputs.base_ref || github.base_ref }}
           HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
           PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
+
   test:
     needs: check_conditions
     runs-on: ubuntu-latest
