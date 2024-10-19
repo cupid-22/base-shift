@@ -160,7 +160,7 @@ jobs:
 
   closed_pr_workflows:
     needs: pulse_checks
-    if: needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_action == 'closed' && github.event.pull_request.merged == 'true'
+    if: needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_action == 'closed' && github.event.pull_request.merged == true
     uses: ./.github/workflows/reusable-pr-cleanups.yml
     with:
       pr_number: ${{ github.event.pull_request.number || inputs.pr_number }}
