@@ -135,6 +135,9 @@ jobs:
 
     - name: Update CHANGELOG.md
       if: 1 == 0  # find a better use-case for this, this would not work with closed PRs maybe run at ongoing PR
+#      if: |
+#        github.event.review.state == 'approved' &&
+#        github.event.pull_request.mergeable_state == 'clean'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
