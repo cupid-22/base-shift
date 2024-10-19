@@ -72,7 +72,7 @@ jobs:
 
   debug_mode:
     needs: [pulse_checks]
-    if: ${{ (inputs.debug_mode == 'true' || github.event.inputs.enable_debugging == 'true') }}
+    if: ${{ (inputs.debug_mode == true || github.event.inputs.enable_debugging == true) }}
     runs-on: ubuntu-latest
     steps:
       - name: Run detailed debug information
