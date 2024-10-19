@@ -98,19 +98,10 @@ jobs:
           HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          # Ensure refs exist
-          if ! git rev-parse --verify ${BASE_REF} >/dev/null 2>&1; then
-            echo "Error: Base ref ${BASE_REF} not found"
-            exit 1
-          fi
-          
-          if ! git rev-parse --verify ${HEAD_REF} >/dev/null 2>&1; then
-            echo "Error: Head ref ${HEAD_REF} not found"
-            exit 1
-          fi
-          
-          LOC=$(git diff --shortstat ${BASE_REF}...${HEAD_REF} | awk '{print $1}')
-          echo "lines_of_code=${LOC:-0}" >> $GITHUB_ENV
+          # Ensure refs exist and get actual line count
+          DIFF_STATS=$(git diff --numstat ${BASE_REF}...${HEAD_REF} | awk '{sum += $1 + $2} END {print sum}')
+          echo "lines_of_code=${DIFF_STATS:-0}" >> $GITHUB_ENV
+          echo "Total lines changed: ${DIFF_STATS:-0}"
 
       - name: Determine PR size label
         id: determine-label
@@ -137,29 +128,36 @@ jobs:
             echo "color=FF4500" >> $GITHUB_OUTPUT
           fi
 
-      - name: Check existing labels
-        id: check-labels
+      - name: Remove existing size labels
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
         run: |
+          # Get all existing labels
           LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
-          if echo "$LABELS" | grep -q "${{ steps.determine-label.outputs.label }}"; then
-            echo "label_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "label_exists=false" >> $GITHUB_OUTPUT
-          fi
+          
+          # Remove any existing size labels
+          echo "$LABELS" | while read -r label; do
+            if [[ "$label" =~ ^(size/|no-changes$) ]]; then
+              echo "Removing label: $label"
+              gh pr edit $PR_NUMBER --remove-label "$label" || true
+            fi
+          done
 
-      - name: Create or update label
-        if: steps.check-labels.outputs.label_exists == 'false'
+      - name: Create label if it doesn't exist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
         run: |
           gh label create "${{ steps.determine-label.outputs.label }}" \
             --color "${{ steps.determine-label.outputs.color }}" \
             --description "PR size: ${{ steps.determine-label.outputs.label }}" \
             || true
+
+      - name: Add new size label
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
+        run: |
           gh pr edit $PR_NUMBER --add-label "${{ steps.determine-label.outputs.label }}"
 
       - name: Debug information
@@ -167,7 +165,7 @@ jobs:
           echo "Base Ref: ${BASE_REF}"
           echo "Head Ref: ${HEAD_REF}"
           echo "PR Number: ${PR_NUMBER}"
-          echo "Lines of code: ${lines_of_code}"
+          echo "Lines of code changed: ${lines_of_code}"
           echo "Selected label: ${{ steps.determine-label.outputs.label }}"
           echo "Label color: ${{ steps.determine-label.outputs.color }}"
         env:
