@@ -131,7 +131,7 @@ jobs:
           
           echo ""
           echo "Condition for 'closed_pr_workflows':"
-          echo "${{ needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_action == 'closed' && github.event.pull_request.merged == 'true' }}"
+          echo "${{ needs.pulse_checks.outputs.pr_exists == 'true' && needs.pulse_checks.outputs.pr_action == 'closed' && github.event.pull_request.merged == true }}"
           echo "PR Exists: ${{ needs.pulse_checks.outputs.pr_exists }}"
           echo "PR State: ${{ needs.pulse_checks.outputs.pr_state }}"
           echo "PR Merged: ${{ github.event.pull_request.merged }} (Expected: true)"
