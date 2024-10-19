@@ -121,34 +121,6 @@ jobs:
           echo "base_ref: ${{ inputs.base_ref || github.base_ref || 'not provided' }}"
           echo "head_ref: ${{ inputs.head_ref || github.head_ref || 'not provided' }}"
           echo "Available PRs: ${{ needs.fetch_prs.outputs.pr_list }}"
-          
-          # Additional debug information
-          echo "Event payload:"
-          echo "${{ toJSON(github.event) }}" | jq '.'
-
-  prune-dead-branches:
-    needs: [check_conditions]
-    runs-on: ubuntu-latest
-    if: needs.check_conditions.outputs.should_run == 'true'
-    steps:
-      - name: Checkout the repository with submodules
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: recursive
-          token: ${{ secrets.PAT_TOKEN }}
-
-      - name: Handle Git Submodules
-        uses: ./.github/actions/handle-submodules
-        with:
-          branch: ${{ inputs.head_ref || github.head_ref || 'main' }}
-
-      - name: Run Clean-up scripts
-        uses: ./.github/actions/clean-up
-        with:
-          pr_number: ${{ needs.check_conditions.outputs.pr_number }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          is_full_cleanup: ${{ github.event.inputs.is_full_cleanup == 'true' }}
 
   update-changelog:
     needs: check_conditions
@@ -162,6 +134,10 @@ jobs:
         fetch-depth: 0
 
     - name: Update CHANGELOG.md
+      if: 1 == 0  # find a better use-case for this, this would not work with closed PRs maybe run at ongoing PR
+#      if: |
+#        github.event.review.state == 'approved' &&
+#        github.event.pull_request.mergeable_state == 'clean'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         PR_NUMBER: ${{ needs.check_conditions.outputs.pr_number }}
@@ -250,3 +226,27 @@ jobs:
           else
             echo "No large files found."
           fi
+
+  prune-dead-branches:
+    needs: [check_conditions, update-changelog, misc-checks]
+    runs-on: ubuntu-latest
+    if: needs.check_conditions.outputs.should_run == 'true'
+    steps:
+      - name: Checkout the repository with submodules
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Handle Git Submodules
+        uses: ./.github/actions/handle-submodules
+        with:
+          branch: ${{ inputs.head_ref || github.head_ref || 'main' }}
+
+      - name: Run Clean-up scripts
+        uses: ./.github/actions/clean-up
+        with:
+          pr_number: ${{ needs.check_conditions.outputs.pr_number }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          is_full_cleanup: ${{ github.event.inputs.is_full_cleanup == 'true' }}
