@@ -140,39 +140,41 @@ jobs:
           CURRENT_BODY=$(gh pr view $PR_NUMBER --json body --jq '.body')
           
           if [[ -z "$CURRENT_BODY" ]]; then
-            PR_BODY=$(cat << 'EOF'
-            # Pull Request Details 🚀
-  
-            ## Change Description
-            <!-- Please provide a detailed description of your changes -->
-            
-            ## Ticket Details
-            **Jira Ticket:** [TICKET-XXX](https://your-jira-url/TICKET-XXX)
-            **Type:** Feature/Bug/Enhancement
-            
-            ## Type of Change
-            - [ ] 🐛 Bug fix
-            - [ ] ✨ New feature
-            - [ ] 💥 Breaking change
-            - [ ] 📚 Documentation update
-            
-            ## Quality Checks
-            - [ ] ✅ ESLint
-            - [ ] 🎨 Prettier
-            - [ ] 🧪 Unit Tests
-            - [ ] 🔄 Integration Tests
-            
-            ## Additional Notes
-            <!-- Add any additional notes, considerations, or context about the changes -->
-            
-            ---
-            > **Remember to:**
-            > - Link the Board ticket
-            > - Update documentation if needed
-            > - Add/update tests as needed
-            EOF
+            PR_BODY=$(
+              cat << 'EOF'
+                # Pull Request Details 🚀
+                
+                ## Change Description
+                <!-- Please provide a detailed description of your changes -->
+                
+                ## Ticket Details
+                **Jira Ticket:** [TICKET-XXX](https://your-jira-url/TICKET-XXX)
+                **Type:** Feature/Bug/Enhancement
+                
+                ## Type of Change
+                - [ ] 🐛 Bug fix
+                - [ ] ✨ New feature
+                - [ ] 💥 Breaking change
+                - [ ] 📚 Documentation update
+                
+                ## Quality Checks
+                - [ ] ✅ ESLint
+                - [ ] 🎨 Prettier
+                - [ ] 🧪 Unit Tests
+                - [ ] 🔄 Integration Tests
+                
+                ## Additional Notes
+                <!-- Add any additional notes, considerations, or context about the changes -->
+                
+                ---
+                > **Remember to:**
+                > - Link the Board ticket
+                > - Update documentation if needed
+                > - Add/update tests as needed
+                EOF
             )
-            
+          
+            # Update the PR body with the template
             if ! gh pr edit $PR_NUMBER --body "$PR_BODY"; then
               echo "Failed to update PR description"
               exit 1
