@@ -36,12 +36,16 @@ while IFS= read -r line; do
     cd "$submodule_path" || continue
 
     # Check for divergent branches and handle accordingly
-    if git status | grep -q "Your branch and 'origin/main' have diverged"; then
-        echo "Branches have diverged. Attempting to merge."
-        git fetch origin
-        git merge origin/main  # Change to 'git rebase origin/main' if preferred
+    if [ "$current_branch" != "detached HEAD" ]; then
+        if git status | grep -q "Your branch and 'origin/main' have diverged"; then
+            echo "Branches have diverged. Attempting to merge."
+            git fetch origin
+            git merge origin/main  # Change to 'git rebase origin/main' if preferred
+        else
+            git pull
+        fi
     else
-        git pull
+        echo "Currently in detached HEAD state, skipping pull/merge."
     fi
 
     # Fetch changes in the submodule
