@@ -41,12 +41,15 @@ while IFS= read -r line; do
         echo "Currently in detached HEAD state for $submodule_path, skipping pull."
     else
         if git status | grep -q "Your branch and 'origin/${branch}' have diverged"; then
-            echo "Branches have diverged. Attempting to rebase."
+            echo "Branches have diverged. Attempting to merge."
             git fetch origin
-            git rebase origin/"${branch}"
+            git merge --no-ff origin/"${branch}"
         else
-            # Specify merge strategy to handle divergent branches
-            git pull --rebase=false --ff-only origin "${branch}"
+            # Attempt fast-forward
+            git pull --rebase=false --ff-only origin "${branch}" || {
+                echo "Fast-forward not possible. Performing a regular merge."
+                git merge --no-ff origin/"${branch}"
+            }
         fi
     fi
 
