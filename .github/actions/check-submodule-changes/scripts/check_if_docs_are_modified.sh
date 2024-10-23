@@ -40,7 +40,7 @@ while IFS= read -r line; do
         if git status | grep -q "Your branch and 'origin/main' have diverged"; then
             echo "Branches have diverged. Attempting to merge."
             git fetch origin
-            git merge origin/main  # Change to 'git rebase origin/main' if preferred
+            git rebase origin/main  # Change to 'git rebase origin/main' if preferred
         else
             git pull
         fi
