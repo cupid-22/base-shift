@@ -45,7 +45,8 @@ while IFS= read -r line; do
             git fetch origin
             git rebase origin/"${branch}"
         else
-            git pull origin "${branch}"
+            # Specify merge strategy to handle divergent branches
+            git pull --rebase=false --ff-only origin "${branch}"
         fi
     fi
 
