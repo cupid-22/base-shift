@@ -4,7 +4,8 @@ provided_python_version="$1"
 # Function to extract Python version from pyproject.toml
 get_python_version() {
   toml_file="$1"
-  python_version=$(grep 'python' "$toml_file" | cut -d '"' -f2 | cut -d '^' -f2)
+  # Extract the version line and filter for valid Python versions
+  python_version=$(grep -oP 'python\s*=\s*"\K([^"]+)' "$toml_file" | grep -E '^[0-9]+\.[0-9]+(\.[0-9]+)?$')
   echo "$python_version"
 }
 
@@ -22,19 +23,23 @@ fi
 for dir in applications/*/; do
   if [[ -f "${dir}pyproject.toml" ]]; then
     app_python_version=$(get_python_version "${dir}pyproject.toml")
-    python_versions+=("$app_python_version")
+    # Ensure only valid versions are added
+    if [[ -n "$app_python_version" ]]; then
+      python_versions+=("$app_python_version")
+    fi
   fi
 done
 
 # Deduplicate the list of Python versions
-python_versions=($(echo "${python_versions[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+mapfile -t unique_python_versions < <(printf "%s\n" "${python_versions[@]}" | sort -u)
 
 # Combine with input versions, deduplicate again
 IFS=',' read -r -a input_versions <<< "$provided_python_version"
-all_versions=("${python_versions[@]}" "${input_versions[@]}")
+all_versions=("${unique_python_versions[@]}" "${input_versions[@]}")
 
 # Deduplicate final versions
-final_versions=($(echo "${all_versions[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+mapfile -t final_versions < <(printf "%s\n" "${all_versions[@]}" | sort -u)
 
-echo "Python versions to install: ${final_versions[@]}"
-echo "python-versions=${final_versions[*]}" >> $GITHUB_OUTPUT
+# Echo the versions correctly
+echo "Python versions to install: ${final_versions[*]}"
+echo "python-versions=${final_versions[*]}" >> "$GITHUB_OUTPUT"
