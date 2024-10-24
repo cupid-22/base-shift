@@ -98,7 +98,7 @@ jobs:
             cd "$dir" || { echo "Failed to enter directory: $dir"; exit 1; }
 
             # Check for Poetry and pyproject.toml
-            if [[ -f "pyproject.toml" && -f "poetry.lock" ]]; then
+            if [[ -f "../pyproject.toml" && -f "../poetry.lock" ]]; then
               echo "Poetry found. Installing dependencies using Poetry..."
               poetry install --only docs --no-root
             elif [[ -f "requirements.docs.txt" ]]; then
