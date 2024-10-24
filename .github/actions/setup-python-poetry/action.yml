@@ -4,10 +4,11 @@ author: "Gaurav Mishra"
 
 inputs:
   python-versions:
-    description: "Comma-separated list of Python versions to try"
-    default: "3.10,3.12,3.11"
+    description: "Comma-separated list of Python versions to install"
     required: false
-
+  python-version:
+    description: "Python version to install"
+    required: false
   specific-module:
     description: "Any specific module that has to be built"
     default: ""
@@ -16,19 +17,20 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Ensure Script is Executable
+    - name: Ensure Scripts are Executable
       run: |
         chmod +x ./.github/actions/setup-python-poetry/scripts/install_poetry.sh
         chmod +x ./.github/actions/setup-python-poetry/scripts/install_python.sh
         chmod +x ./.github/actions/setup-python-poetry/scripts/extract_python_versions.sh
       shell: bash
 
-    - name: Extract python versions
-      run: ./.github/actions/setup-python-poetry/scripts/install_python.sh "${{ inputs['python-versions'] }}"
+    - name: Extract Python Versions
+      if: inputs.python-version == ''
+      run: ./.github/actions/setup-python-poetry/scripts/extract_python_versions.sh "${{ inputs['python-versions'] }}"
       shell: bash
 
     - name: Install Python
-      run: ./.github/actions/setup-python-poetry/scripts/install_python.sh "${{ steps.extract_python_versions.outputs.python-versions || inputs['python-versions'] }}"
+      run: ./.github/actions/setup-python-poetry/scripts/install_python.sh "${{ inputs['python-version'] || inputs['python-versions'] || steps.extract_python_versions.outputs.python-versions }}"
       shell: bash
 
     - name: Install Poetry
