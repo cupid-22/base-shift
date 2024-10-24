@@ -3,13 +3,13 @@ description: "Set up Python environment and install Poetry"
 author: "Gaurav Mishra"
 
 inputs:
-  python-version:
-    description: "Python version to install"
-    default: "3.10"
+  python-versions:
+    description: "Comma-separated list of Python versions to try"
+    default: "3.10,3.12,3.11"
     required: false
 
   specific-module:
-    description: "Any Specific module that has to be built"
+    description: "Any specific module that has to be built"
     default: ""
     required: false
 
@@ -20,8 +20,12 @@ runs:
       run: chmod +x ./.github/actions/setup-python-poetry/scripts/install_poetry.sh
       shell: bash
 
-    - name: Install Python and Poetry
-      run: ./.github/actions/setup-python-poetry/scripts/install_poetry.sh ${{ inputs['python-version'] }}
+    - name: Install Python
+      run: ./.github/actions/setup-python-poetry/scripts/install_python.sh "${{ inputs['python-versions'] }}"
+      shell: bash
+
+    - name: Install Poetry
+      run: ./.github/actions/setup-python-poetry/scripts/install_poetry.sh
       shell: bash
 
     - name: Install Poetry Dependency
