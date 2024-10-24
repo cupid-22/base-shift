@@ -4,8 +4,8 @@ provided_python_version="$1"
 # Function to extract Python version from pyproject.toml
 get_python_version() {
   toml_file="$1"
-  # Extract the version line and filter for valid Python versions
-  python_version=$(grep -oP 'python\s*=\s*"\K([^"]+)' "$toml_file" | grep -E '^[0-9]+\.[0-9]+(\.[0-9]+)?$')
+  # Extract the version line for the python dependency
+  python_version=$(grep -oP 'python\s*=\s*"\K([^"]+)' "$toml_file" || true)
   echo "$python_version"
 }
 
@@ -15,7 +15,9 @@ python_versions=()
 
 # Check for Python version in root pyproject.toml
 if [[ -f "pyproject.toml" ]]; then
-  root_python_version=$(get_python_version "pyproject.toml") || root_python_version="3.10"
+  root_python_version=$(get_python_version "pyproject.toml")
+  # Fallback to default if not found
+  [[ -z "$root_python_version" ]] && root_python_version="3.10"
   python_versions+=("$root_python_version")
 fi
 
