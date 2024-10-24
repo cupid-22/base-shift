@@ -82,7 +82,7 @@ jobs:
       - name: Set up Python and Install Poetry 🛠️
         uses: ./.github/actions/setup-python-poetry
         with:
-          python-versions: '3.10,3.12'
+          python-versions: '3.10,3.12.3'
           specific-module: '--only docs --no-root'
 
       - name: List and Build Docs Directories
