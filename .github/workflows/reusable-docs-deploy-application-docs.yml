@@ -82,7 +82,7 @@ jobs:
       - name: Set up Python and Install Poetry 🛠️
         uses: ./.github/actions/setup-python-poetry
         with:
-          python-versions: '3.10,3.11'
+          python-versions: '3.10,3.12'
           specific-module: '--only docs --no-root'
 
       - name: List and Build Docs Directories
@@ -100,6 +100,8 @@ jobs:
             # Check for Poetry and pyproject.toml
             if [[ -f "../pyproject.toml" && -f "../poetry.lock" ]]; then
               echo "Poetry found. Installing dependencies using Poetry..."
+              python_version=$(grep -oP 'python\s*=\s*"\K([^"]+)' "../pyproject.toml" | grep -E '^[0-9]+\.[0-9]+(\.[0-9]+)?$')
+              env use python_version
               poetry install --only docs --no-root
             elif [[ -f "requirements.docs.txt" ]]; then
               echo "requirements.docs.txt found. Installing dependencies with pip..."
