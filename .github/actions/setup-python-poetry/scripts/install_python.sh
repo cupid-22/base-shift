@@ -5,6 +5,7 @@ set -e
 
 # Split the input into an array of Python versions (comma-separated)
 IFS=',' read -r -a PYTHON_VERSIONS <<< "${1:-"3.10,3.12,3.11"}"
+sudo add-apt-repository ppa:deadsnakes/ppa
 
 # Iterate through each Python version and attempt to install it
 for PYTHON_VERSION in "${PYTHON_VERSIONS[@]}"; do
